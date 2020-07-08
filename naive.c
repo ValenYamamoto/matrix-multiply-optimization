@@ -1,4 +1,5 @@
 #include <stdio.h>
+#include <sys/time.h>
 #define N 4
 
 
@@ -9,6 +10,8 @@ int main()
 {
 
 	int i, j;
+	float exetime;
+	struct timeval start, end;
 
 	float a[N][N] = {{1, 2, 3, 4},
 		       {1, 2, 3, 4},
@@ -20,11 +23,17 @@ int main()
                        {1, 2, 3, 4}};
 	float c[N][N];
 
+	gettimeofday(&start, NULL);
 	naiveMultiply( N, a, b, c );
+	gettimeofday(&end, NULL);
 
 	for ( i = 0; i < 4; i++ )
 		for ( j = 0; j < 4; j++ )
 			printf( "%.0f\n",  c[i][j] );
+
+	exetime = (end.tv_sec * 1000000 + end.tv_usec) - (start.tv_sec * 1000000 + start.tv_usec);
+	printf( "Execution time is: %f microseconds\n", exetime );
+
 	
 	return 0;
 }
