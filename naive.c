@@ -1,10 +1,12 @@
 #include <stdio.h>
 #include <stdlib.h>
 #include <sys/time.h>
+#include <time.h>
 
 
 void naiveMultiply( int n, float *m1, float *m2, float *result );
 
+void generateMatrix( int n, float *m );
 
 int main(int argc, char *argv[])
 {
@@ -22,25 +24,27 @@ int main(int argc, char *argv[])
 	float *b = ( float * ) malloc( N * N * sizeof( float ));
 	float *c = ( float * ) malloc( N * N * sizeof( float ));
 
-	srand(1); // for testing purposes
+	srand(time(0));
+		
+	generateMatrix( N, a );
+	generateMatrix( N, b );
 
-	for ( i = 0; i < N * N; i++ ) {
-		*(a + i) = rand() % 50; // mod 50 just for testing purposes
-		*(b + i) = rand() % 50;
-	}
-
+	/*
 	printf( "arrays A and B\n" );
 	for ( i = 0; i < N * N; i++ ) 
 		printf( "%.0f	%.0f\n", *(a+i), *(b+i) );
+	*/
 
 	gettimeofday(&start, NULL);
 	naiveMultiply( N, a, b, c );
 	gettimeofday(&end, NULL);
 
+	/*
 	printf( "Array C\n" );
 	for ( i = 0; i < N; i++ )
 		for ( j = 0; j < N; j++ )
 			printf( "%.0f\n",  *( c + N * i + j) );
+	*/
 
 	exetime = (end.tv_sec * 1000000 + end.tv_usec) - (start.tv_sec * 1000000 + start.tv_usec);
 	printf( "Execution time is: %f microseconds\n", exetime );
@@ -71,3 +75,12 @@ void naiveMultiply( int n, float *m1, float *m2, float *result )
 	}
 }
 
+
+void generateMatrix( int n, float *m )
+{
+	int i;
+	for ( i = 0; i < n * n; i++ ) {
+		*(m + i) = rand() % 50; // mod 50 just for testing purposes
+	}
+
+}
