@@ -14,7 +14,7 @@ int main(int argc, char *argv[])
 	struct timeval start, end;
         
 	if ( argc == 1 ) 
-		N = 4;
+		N = 4; // default matrix size to 4
 	else
 		N = atoi(argv[1]);
 
@@ -22,14 +22,17 @@ int main(int argc, char *argv[])
 	float *b = ( float * ) malloc( N * N * sizeof( float ));
 	float *c = ( float * ) malloc( N * N * sizeof( float ));
 
+	srand(1); // for testing purposes
+
 	for ( i = 0; i < N * N; i++ ) {
-		*(a + i) = i + 1;
-		*(b + i) = i + 1;
+		*(a + i) = rand() % 50; // mod 50 just for testing purposes
+		*(b + i) = rand() % 50;
 	}
 
 	printf( "arrays A and B\n" );
 	for ( i = 0; i < N * N; i++ ) 
 		printf( "%.0f	%.0f\n", *(a+i), *(b+i) );
+
 	gettimeofday(&start, NULL);
 	naiveMultiply( N, a, b, c );
 	gettimeofday(&end, NULL);
