@@ -1,18 +1,22 @@
 #include <stdio.h>
 #include <stdlib.h>
 #include <sys/time.h>
-#define N 4
 
 
 void naiveMultiply( int n, float *m1, float *m2, float *result );
 
 
-int main()
+int main(int argc, char *argv[])
 {
 
-	int i, j;
+	int i, j, N;
 	float exetime;
 	struct timeval start, end;
+        
+	if ( argc == 1 ) 
+		N = 4;
+	else
+		N = atoi(argv[1]);
 
 	float *a = ( float * ) malloc( N * N * sizeof( float ));
 	float *b = ( float * ) malloc( N * N * sizeof( float ));
