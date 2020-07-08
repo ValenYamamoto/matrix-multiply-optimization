@@ -38,7 +38,9 @@ int main()
 	exetime = (end.tv_sec * 1000000 + end.tv_usec) - (start.tv_sec * 1000000 + start.tv_usec);
 	printf( "Execution time is: %f microseconds\n", exetime );
 
-	
+	free(a);
+	free(b);
+	free(c);
 	return 0;
 }
 
