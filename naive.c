@@ -1,9 +1,10 @@
 #include <stdio.h>
+#include <stdlib.h>
 #include <sys/time.h>
 #define N 4
 
 
-void naiveMultiply(int n, float m1[][N], float m2[][N], float result[][N]);
+void naiveMultiply( int n, float *m1, float *m2, float *result );
 
 
 int main()
@@ -13,23 +14,26 @@ int main()
 	float exetime;
 	struct timeval start, end;
 
-	float a[N][N] = {{1, 2, 3, 4},
-		       {1, 2, 3, 4},
-		       {1, 2, 3, 4},
-                       {1, 2, 3, 4}};
-	float b[N][N] = {{1, 2, 3, 4},
-		       {1, 2, 3, 4},
-		       {1, 2, 3, 4},
-                       {1, 2, 3, 4}};
-	float c[N][N];
+	float *a = ( float * ) malloc( N * N * sizeof( float ));
+	float *b = ( float * ) malloc( N * N * sizeof( float ));
+	float *c = ( float * ) malloc( N * N * sizeof( float ));
 
+	for ( i = 0; i < N * N; i++ ) {
+		*(a + i) = i + 1;
+		*(b + i) = i + 1;
+	}
+
+	printf( "arrays A and B\n" );
+	for ( i = 0; i < N * N; i++ ) 
+		printf( "%.0f	%.0f\n", *(a+i), *(b+i) );
 	gettimeofday(&start, NULL);
 	naiveMultiply( N, a, b, c );
 	gettimeofday(&end, NULL);
 
-	for ( i = 0; i < 4; i++ )
-		for ( j = 0; j < 4; j++ )
-			printf( "%.0f\n",  c[i][j] );
+	printf( "Array C\n" );
+	for ( i = 0; i < N; i++ )
+		for ( j = 0; j < N; j++ )
+			printf( "%.0f\n",  *( c + N * i + j) );
 
 	exetime = (end.tv_sec * 1000000 + end.tv_usec) - (start.tv_sec * 1000000 + start.tv_usec);
 	printf( "Execution time is: %f microseconds\n", exetime );
@@ -39,7 +43,7 @@ int main()
 }
 
 // multiply two nxn matrices together
-void naiveMultiply(int n, float m1[][N], float m2[][N], float result[][N])
+void naiveMultiply( int n, float *m1, float *m2, float *result )
 {
 	int i, j, k;
 	float sum;
@@ -51,9 +55,9 @@ void naiveMultiply(int n, float m1[][N], float m2[][N], float result[][N])
 			sum = 0;
 			for ( k = 0; k < n; k++ )
 			{
-				sum += m1[i][k] * m2[k][j];
+				sum += *( m1 + n * i + k ) * *( m2 + n * k + j );
 			}
-			result[i][j] = sum;
+			*( result + n * i + j) = sum;
 		}
 	}
 }
