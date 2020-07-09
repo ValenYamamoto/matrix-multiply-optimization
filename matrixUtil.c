@@ -1,10 +1,10 @@
 #include <stdio.h>
 #include <stdlib.h>
 #include <string.h>
-//#include "readMatrixFile.h"
+#include <math.h>
+#include "matrixUtil.h"
 
-
-void readMatrixFromFile( char *filepath, double *m );
+#if 0
 int main() 
 {
 	double *m;
@@ -19,6 +19,7 @@ int main()
 	free( m );
 	return 0;
 }
+#endif
 
 void readMatrixFromFile( char *filepath, double *m )
 {
@@ -35,13 +36,28 @@ void readMatrixFromFile( char *filepath, double *m )
 		token = strtok( line, " " );
 		while( token != NULL ) {
 			*( m + i++ ) = atof( token );
-			printf( "%s %.14f \n", token, *( m + i -1));
 			token = strtok( NULL, " " );
 		}
 	}
 	free( line );
 	free( token );
 	fclose( inFile );
+}
+
+int checkAnswer( int n, double *result, double *answer, int debug )
+{
+	int i;
+	int correct = 1;
+
+	for ( i = 0; i < n * n; i++ ) {
+		if ( fabs( *( result + i ) - *( answer + i ) ) > EPSILON ) {
+			printf( "multiply answer: %.14lf	correct answer: %.14lf\n", *( result + i ), *( answer + i ));
+			correct = 0;
+		} else if ( debug )  {
+			printf( "multiply answer: %.14lf	correct answer: %.14lf\n", *( result + i ), *( answer + i ));
+		}
+	}
+	return correct;
 }
 		
  		
