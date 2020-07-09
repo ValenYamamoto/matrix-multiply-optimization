@@ -1,1 +1,1 @@
-void readMatrixFromFile( char *filepath, long double *m );
+void readMatrixFromFile( char *filepath, double *m );
