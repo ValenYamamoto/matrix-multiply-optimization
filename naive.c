@@ -4,15 +4,15 @@
 #include <time.h>
 
 
-void naiveMultiply( int n, float *m1, float *m2, float *result );
+void naiveMultiply( int n, double *m1, double *m2, double *result );
 
-void generateMatrix( int n, float *m );
+void generateMatrix( int n, double *m );
 
 int main(int argc, char *argv[])
 {
 
 	int i, j, N;
-	float exetime;
+	double exetime;
 	struct timeval start, end;
         
 	if ( argc == 1 ) 
@@ -20,9 +20,9 @@ int main(int argc, char *argv[])
 	else
 		N = atoi(argv[1]);
 
-	float *a = ( float * ) malloc( N * N * sizeof( float ));
-	float *b = ( float * ) malloc( N * N * sizeof( float ));
-	float *c = ( float * ) malloc( N * N * sizeof( float ));
+	double *a = ( double * ) malloc( N * N * sizeof( double ));
+	double *b = ( double * ) malloc( N * N * sizeof( double ));
+	double *c = ( double * ) malloc( N * N * sizeof( double ));
 
 	srand(time(0));
 		
@@ -56,10 +56,10 @@ int main(int argc, char *argv[])
 }
 
 // multiply two nxn matrices together
-void naiveMultiply( int n, float *m1, float *m2, float *result )
+void naiveMultiply( int n, double *m1, double *m2, double *result )
 {
 	int i, j, k;
-	float sum;
+	double sum;
 
 	for ( i = 0; i < n; i++ ) 
 	{
@@ -76,7 +76,7 @@ void naiveMultiply( int n, float *m1, float *m2, float *result )
 }
 
 
-void generateMatrix( int n, float *m )
+void generateMatrix( int n, double *m )
 {
 	int i;
 	for ( i = 0; i < n * n; i++ ) {
