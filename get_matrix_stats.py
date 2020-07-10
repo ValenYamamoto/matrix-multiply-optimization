@@ -30,7 +30,7 @@ if __name__ == "__main__":
 			answers.append(exetime)
 		stream.close()
 
-	print( f"------------Matrix Size N={N}-------------" )
-	print( f"Mean: {numpy.mean( answers )}" )
-	print( f"Std Dev: {numpy.std( answers, ddof=1 )}" )
-	
+#	print( f"------------Matrix Size N={N}-------------" )
+#	print( f"Mean: {numpy.mean( answers )}" )
+#	print( f"Std Dev: {numpy.std( answers, ddof=1 )}" )
+	print( f"{N} {numpy.mean( answers )} {numpy.std( answers, ddof=1 )}")	

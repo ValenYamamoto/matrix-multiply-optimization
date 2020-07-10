@@ -8,3 +8,5 @@ wait $touch_pid
 for x in $@; do
 	python3 get_matrix_stats.py $x  >> "$OUTPUT_FILE"
 done
+python3 plot_matrix_data.py "$OUTPUT_FILE"
+
