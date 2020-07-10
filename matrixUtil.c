@@ -61,3 +61,11 @@ int checkAnswer( int n, double *result, double *answer, int debug )
 }
 		
  		
+void generateMatrix( int n, double *m )
+{
+	        int i;
+		for ( i = 0; i < n * n; i++ ) {
+			*(m + i) = rand() % 50; // mod 50 just for testing purposes
+	        }
+
+}
