@@ -35,9 +35,10 @@ int main( int argc, char *argv[] )
 	gettimeofday( &end, NULL );
 
 	correct = checkAnswer( N, c, answer, debug );
-	printf( "Answer is (%d): %s\n", correct, (correct? "correct" : "incorrect") );
+//	printf( "Answer is (%d): %s\n", correct, (correct? "correct" : "incorrect") );
 	exetime = ( end.tv_sec * 1000000 + end.tv_usec ) - ( start.tv_sec * 1000000 + start.tv_usec );
-	printf( "Execution time is %.0f microseconds\n", exetime );
+//	printf( "Execution time is %.0f microseconds\n", exetime );
+	printf( "%d %.0f\n", correct, exetime );
 
 	free( a );
 	free( b );

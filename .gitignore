@@ -1,3 +1,5 @@
 a.*
 *.o
 matrix_mult
+matrix_output_*
+.nfs*
