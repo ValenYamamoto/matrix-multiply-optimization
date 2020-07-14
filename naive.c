@@ -3,6 +3,8 @@
 #include <sys/time.h>
 #include <time.h>
 
+#include "matrixUtil.h"
+
 
 
 #if 0
@@ -76,3 +78,33 @@ void naiveMultiply( int n, double *m1, double *m2, double *result )
 	}
 }
 
+
+void *naiveMultiply_parallel( void *thread_args )
+{
+	int i, j, k, start, end;
+	double sum;
+
+	struct thread_info *args = ( struct thread_info * ) thread_args;
+	double *m1 = args->m1;
+	double *m2 = args->m2;
+	double *result = args->answer;
+
+	long n = args->size;
+	start = args->start;
+	end = args->end;
+
+
+	for ( i = start; i < end; i++ ) 
+	{
+		for ( j = 0; j < n; j++ ) 
+		{
+			sum = 0;
+			for ( k = 0; k < n; k++ )
+			{
+				sum += *( m1 + n * i + k ) * *( m2 + n * k + j );
+			}
+			*( result + n * i + j) = sum;
+		}
+	}
+	pthread_exit( NULL );
+}

@@ -3,3 +3,5 @@ a.*
 matrix_mult
 matrix_output_*
 .nfs*
+*.png
+*.swp
