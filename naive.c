@@ -2,6 +2,7 @@
 #include <stdlib.h>
 #include <sys/time.h>
 #include <time.h>
+#include <pthread.h>
 
 #include "matrixUtil.h"
 
@@ -79,7 +80,7 @@ void naiveMultiply( int n, double *m1, double *m2, double *result )
 }
 
 
-void *naiveMultiply_parallel( void *thread_args )
+void* naiveMultiply_parallel( void *thread_args )
 {
 	int i, j, k, start, end;
 	double sum;

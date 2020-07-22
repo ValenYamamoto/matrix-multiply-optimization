@@ -11,7 +11,7 @@ matrixUtil.o : matrixUtil.h matrixUtil.c
 naive.o : naive.h naive.c
 	$(CC) $(CFLAGS) -c naive.c
 
-main.o : matrixUtil.h naive.h main.c
+main.o : matrixUtil.h naive.h main_p1.c
 #	$(CC) $(CFLAGS) -c main.c
 	$(CC) $(CFLAGS) -c main_p1.c -o main.o
 

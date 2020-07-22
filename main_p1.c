@@ -47,7 +47,7 @@ int main( int argc, char *argv[] )
 	
 	gettimeofday( &start, NULL );
 	
-	step = ceil( N / num_threads );
+	step = ceil( N / ( double ) num_threads );
 
 	for( t = 0; t < num_threads; t++ ) {
 		thread_info_array[t].size = N;
@@ -80,7 +80,7 @@ int main( int argc, char *argv[] )
 //	printf( "Answer is (%d): %s\n", correct, (correct? "correct" : "incorrect") );
 	exetime = ( end.tv_sec - start.tv_sec ) + ( end.tv_usec - start.tv_usec ) / 1000000.0;
 //	printf( "Execution time is %.0f microseconds\n", exetime );
-	printf( "%d %.0f\n", correct, exetime );
+	printf( "%d %.6f\n", correct, exetime );
 
 	free( a );
 	free( b );
