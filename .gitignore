@@ -4,3 +4,5 @@ matrix_mult
 .nfs*
 *.swp
 *.png
+naive
+strassen
