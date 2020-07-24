@@ -114,6 +114,34 @@ void strassen( int n, double *m1, double *m2, double *answer ) {
     subtractMatrix( n/2, d, p7, d );
 
     combine( n, a, b, c, d, answer );
+
+    free( a );
+    free( b );
+    free( c );
+    free( d );
+    free( e );
+    free( f );
+    free( g );
+    free( h );
+
+    free( p1 );
+    free( p2 );
+    free( p3 );
+    free( p4 );
+    free( p5 );
+    free( p6 );
+    free( p7 );
+
+    free( inter0 );
+    free( inter1 );
+    free( inter2 );
+    free( inter3 );
+    free( inter4 );
+    free( inter5 );
+    free( inter6 );
+    free( inter7 );
+    free( inter8 );
+    free( inter9 );
   }
 }
 
