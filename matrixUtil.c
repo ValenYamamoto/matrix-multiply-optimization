@@ -2,21 +2,23 @@
 #include <stdlib.h>
 #include <string.h>
 #include <math.h>
+#include <sys/types.h>
 #include "matrixUtil.h"
 
 #if 0
 int main() 
 {
-	double *m;
-	m = ( double * ) malloc( 100 * sizeof( double ));
+	double *m, *a;
+	m = ( double * ) malloc( 16 * sizeof( double ));
+  a = ( double * ) malloc( 16 * 4 * sizeof( double ));
 	
-	readMatrixFromFile( "test_cases/x10", m );
+	readMatrixFromFile( "test_cases/x4", m );
 
-	int i = 0;
-//	for( i = 0; i < 100; i ++ )
-//		printf("%lf	", *( m + i ));
 
+  combine( 8, m, m, m, m, a );
+  printMatrix( 8, a);
 	free( m );
+  free( a );
 	return 0;
 }
 #endif
@@ -109,7 +111,7 @@ void split( int n, int quadrant, double *m, double *result ) {
   int i, j;
   for( i = 0; i < ( n / 2 ); i++ ) {
     for( j = 0; j < ( n / 2 ); j++ ) {
-      *( result + ( n / 2 ) * i + j ) = *( m + ( start_i + i ) * ( n / 2) + ( start_j + j ) );
+      *( result + ( n / 2 ) * i + j ) = *( m + ( start_i + i ) * ( n ) + ( start_j + j ) );
     }
   }
 }
@@ -118,22 +120,32 @@ void combine( int n, double *a, double *b, double *c, double *d, double *result 
   int i, j;
   for( i = 0; i < ( n / 2 ); i++ ) {
     for( j = 0; j < ( n / 2 ); j++ ) {
-      *( result + n * i + j ) = *( a + n * i + j );
+      *( result + n * i + j ) = *( a + ( n / 2) * i + j );
     }
   }
   for( i = 0; i < ( n / 2 ); i++ ) {
-    for( j = ( n / 2 ); j < n; j++ ) {
-      *( result + n * i + j ) = *( b + n * i + j );
+    for( j = 0; j < ( n / 2); j++ ) {
+      *( result + n * i + j + n/2 ) = *( b + ( n / 2 ) * i + j );
     }
   }
-  for( i = ( n / 2 ); i < n; i++ ) {
+  for( i = 0; i < ( n / 2 ); i++ ) {
     for( j = 0; j < ( n / 2 ); j++ ) {
-      *( result + n * i + j ) = *( c + n * i + j );
+      *( result + n * ( i + n / 2) + j ) = *( c + ( n / 2 ) * i + j );
     }
   }
-  for( i = ( n / 2 ); i < n; i++ ) {
-    for( j = ( n / 2 ); j < n; j++ ) {
-      *( result + n * i + j ) = *( d + n * i + j );
+  for( i = 0; i < ( n / 2 ); i++ ) {
+    for( j = 0; j < ( n / 2 ); j++ ) {
+      *( result + n * ( i + n / 2 ) + j + n / 2 ) = *( d + ( n / 2 ) * i + j );
     }
+  }
+}
+
+void printMatrix( int n, double *m ) {
+  int i, j;
+  for( i = 0; i < n; i++ ) {
+    for( j = 0; j < n; j++ ) {
+      printf( "%.0lf ", *( m + n * i + j ) );
+    }
+    printf( "\n" );
   }
 }
