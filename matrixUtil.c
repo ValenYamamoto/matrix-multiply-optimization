@@ -69,3 +69,71 @@ void generateMatrix( int n, double *m )
 	        }
 
 }
+
+void addMatrix( int n, double *m1, double *m2, double *answer ) {
+  int i;
+  for( i = 0; i < n * n; i++ ) {
+    *( answer + i ) = *( m1 + i) + *( m2 + i );
+  }
+}
+
+void subtractMatrix( int n, double *m1, double *m2, double *answer ) {
+  int i;
+  for( i = 0; i < n * n; i++ ) {
+    *( answer + i ) = *( m1 + i) - *( m2 + i );
+  }
+}
+
+void split( int n, int quadrant, double *m, double *result ) {
+  int start_i, start_j;
+
+  switch( quadrant ) {
+    case 1:
+      start_i = 0;
+      start_j = 0;
+      break;
+    case 3:
+      start_i = n / 2;
+      start_j = 0;
+      break;
+    case 2:
+      start_i = 0;
+      start_j = n / 2;
+      break;
+    case 4:
+      start_i = n / 2;
+      start_j = n / 2;
+      break;
+  }
+
+  int i, j;
+  for( i = 0; i < ( n / 2 ); i++ ) {
+    for( j = 0; j < ( n / 2 ); j++ ) {
+      *( result + ( n / 2 ) * i + j ) = *( m + ( start_i + i ) * ( n / 2) + ( start_j + j ) );
+    }
+  }
+}
+
+void combine( int n, double *a, double *b, double *c, double *d, double *result ) {
+  int i, j;
+  for( i = 0; i < ( n / 2 ); i++ ) {
+    for( j = 0; j < ( n / 2 ); j++ ) {
+      *( result + n * i + j ) = *( a + n * i + j );
+    }
+  }
+  for( i = 0; i < ( n / 2 ); i++ ) {
+    for( j = ( n / 2 ); j < n; j++ ) {
+      *( result + n * i + j ) = *( b + n * i + j );
+    }
+  }
+  for( i = ( n / 2 ); i < n; i++ ) {
+    for( j = 0; j < ( n / 2 ); j++ ) {
+      *( result + n * i + j ) = *( c + n * i + j );
+    }
+  }
+  for( i = ( n / 2 ); i < n; i++ ) {
+    for( j = ( n / 2 ); j < n; j++ ) {
+      *( result + n * i + j ) = *( d + n * i + j );
+    }
+  }
+}
