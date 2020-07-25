@@ -1,6 +1,7 @@
 CC=gcc
 CFLAGS = -Wall
 TARGET=matrix_mult
+DEBUG = 0;
 
 naive: matrixUtil.o naive.o main.o
 	$(CC) $(CFLAGS) -o $@ naive.o matrixUtil.o main.o -pthread -lm
@@ -25,10 +26,19 @@ main_strassen.o: main_strassen.c strassen.h matrixUtil.h
 	$(CC) $(CFLAGS) -c main_strassen.c -o main_strassen.o
 
 runnaive:
-	./naive $(N) test_cases/x$(N) test_cases/y$(N) test_cases/a$(N) $(THREADS)
+	./naive $(N) test_cases/x$(N) test_cases/y$(N) test_cases/a$(N) $(THREADS) $(DEBUG)
+
+runnaive_noecho:
+	@./naive $(N) test_cases/x$(N) test_cases/y$(N) test_cases/a$(N) $(THREADS) $(DEBUG)
 
 runstrassen:
-	./strassen $(N) test_cases/x$(N) test_cases/y$(N) test_cases/a$(N) 
+	./strassen $(N) test_cases/x$(N) test_cases/y$(N) test_cases/a$(N) $(DEBUG) 
+
+runstrassen_noecho:
+	@./strassen $(N) test_cases/x$(N) test_cases/y$(N) test_cases/a$(N) $(DEBUG) 
 
 clean:
 	rm -f *.o
+
+cleanlogs:
+	rm -f naive_output_* strassen_output_*

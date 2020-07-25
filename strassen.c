@@ -1,4 +1,5 @@
 #include <stdlib.h>
+#include <stdio.h>
 
 #include "./matrixUtil.h"
 #include "./strassen.h"
@@ -6,6 +7,7 @@
 #define DEBUG_SPLIT 0
 #define DEBUG_INTER 0
 #define DEBUG_RECUR 0
+#define DEBUG_COMBINE 0
 
 void strassen( int n, double *m1, double *m2, double *answer ) {
 
@@ -145,4 +147,125 @@ void strassen( int n, double *m1, double *m2, double *answer ) {
   }
 }
 
+// second pass
+void strassen2( int n, double *m1, double *m2, double *answer ) {
 
+  // base case n = 1
+  if( n == 1 ) {
+    *answer = *m1 * *m2;
+  } else {
+    // split each into four mini matrices
+    double *a = ( double * ) malloc ( ( n * n / 4 ) * sizeof( double ) );
+    double *b = ( double * ) malloc ( ( n * n / 4 ) * sizeof( double ) );
+    double *c = ( double * ) malloc ( ( n * n / 4 ) * sizeof( double ) );
+    double *d = ( double * ) malloc ( ( n * n / 4 ) * sizeof( double ) );
+    double *e = ( double * ) malloc ( ( n * n / 4 ) * sizeof( double ) );
+    double *f = ( double * ) malloc ( ( n * n / 4 ) * sizeof( double ) );
+    double *g = ( double * ) malloc ( ( n * n / 4 ) * sizeof( double ) );
+    double *h = ( double * ) malloc ( ( n * n / 4 ) * sizeof( double ) );
+
+    split( n, 1, m1, a );
+    split( n, 2, m1, b );
+    split( n, 3, m1, c );
+    split( n, 4, m1, d );
+    split( n, 1, m2, e );
+    split( n, 2, m2, f );
+    split( n, 3, m2, g );
+    split( n, 4, m2, h );
+
+    if ( DEBUG_SPLIT ) {
+      printMatrix( n/2, e );
+      printMatrix( n/2, f );
+      printMatrix( n/2, g );
+      printMatrix( n/2, h );
+    }
+
+    // intermediate products and recursive calls
+    double *p2 = ( double * ) malloc ( ( n * n / 4 ) * sizeof( double ) );
+    double *p5 = ( double * ) malloc ( ( n * n / 4 ) * sizeof( double ) );
+    double *p6 = ( double * ) malloc ( ( n * n / 4 ) * sizeof( double ) );
+
+    double *inter = ( double * ) malloc ( ( n * n / 4 ) * sizeof( double ) );
+
+    addMatrix( n/2, a, b, inter );
+    strassen2( n/2, inter, h, p2 );
+
+    addMatrix( n/2, g, h, inter );
+    subtractMatrix( n/2, b, d, b );
+    strassen2( n/2, b, inter, p6 );
+
+    subtractMatrix( n/2, g, e, g );
+    strassen2( n/2, d, g, b );
+
+    subtractMatrix( n/2, f, h, inter );
+    strassen2( n/2, a, inter, g);
+
+    addMatrix( n/2, a, d, inter );
+    addMatrix( n/2, e, h , h );
+    strassen2( n/2, inter, h, p5 );
+
+    addMatrix( n/2, c, d, inter );
+    strassen2( n/2, inter, e, h );
+
+    subtractMatrix( n/2, a, c, a );
+    addMatrix( n/2, e, f, e );
+    strassen2( n/2, a, e, d );
+
+    if ( DEBUG_RECUR ) {
+      printMatrix(n/2, b );
+      printf("\n");
+      printMatrix(n/2, p2 );
+      printf("\n");
+      printMatrix(n/2, h );
+      printf("\n");
+      printMatrix(n/2, b );
+      printf("\n");
+      printMatrix(n/2, p5 );
+      printf("\n");
+      printMatrix(n/2, p6 );
+      printf("\n");
+      printMatrix(n/2, d );
+      printf("\n");
+    }
+
+    // combine into four mini matrices
+    addMatrix( n/2, p5, b, a );
+    subtractMatrix( n/2, a, p2, a );
+    addMatrix( n/2, a, p6, a );
+
+    addMatrix( n/2, g, p2, c );
+
+    addMatrix( n/2, h, b, e );
+
+    addMatrix( n/2, g, p5, f );
+    subtractMatrix( n/2, f, h, f );
+    subtractMatrix( n/2, f, d, f );
+
+    if ( DEBUG_COMBINE ) {
+      printMatrix( n/2, a );
+      printf("\n");
+      printMatrix( n/2, c );
+      printf("\n");
+      printMatrix( n/2, e );
+      printf("\n");
+      printMatrix( n/2, f );
+      printf("\n");
+    }
+    combine( n, a, c, e, f, answer );
+
+    free( a );
+    free( b );
+    free( c );
+    free( d );
+    free( e );
+    free( f );
+    free( g );
+    free( h );
+
+    free( p2 );
+    free( p5 );
+    free( p6 );
+
+    free( inter );
+  }
+}

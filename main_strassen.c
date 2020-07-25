@@ -4,7 +4,6 @@
 
 #include "matrixUtil.h"
 #include "./strassen.h"
-#include "naive.h"
 
 #define N_INDEX 1
 #define M1_INDEX 2
@@ -32,7 +31,7 @@ int main( int argc, char *argv[] )
 	debug = ( argc > 5 ) ? atoi( argv[ DEBUG_INDEX ] ) : 0 ;
 	
 	gettimeofday( &start, NULL );
-	strassen( N, a, b, c );
+	strassen2( N, a, b, c );
 	gettimeofday( &end, NULL );
 
 	correct = checkAnswer( N, c, answer, debug );
