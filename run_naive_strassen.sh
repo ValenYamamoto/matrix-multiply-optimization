@@ -9,10 +9,15 @@ touch $STRASSEN_OUTPUT
 # echo $@
 # SIZES=$( sed 's/\r//' <($@) )
 # echo $SIZES
-for x in "4 8 16 32 64" ; 
+for x in $@ ; 
 do
-	echo "$x $( make runnaive_noecho N=$x | awk '{print $2}' )" >> "$NAIVE_FILE"
-	echo "$x $( make runstrassen_noecho N=$x | awk '{print $2}' )" >> "$STRASSEN_FILE"
+	echo "$x $( make runnaive_noecho N=$x THREADS=1 | awk '{print $2}' )" >> "$NAIVE_OUTPUT"
+	echo "$x $( make runnaive_noecho N=$x THREADS=1 | awk '{print $2}' )" >> "$NAIVE_OUTPUT"
+	echo "$x $( make runnaive_noecho N=$x THREADS=1 | awk '{print $2}' )" >> "$NAIVE_OUTPUT"
+
+	echo "$x $( make runstrassen_noecho N=$x | awk '{print $2}' )" >> "$STRASSEN_OUTPUT"
+	echo "$x $( make runstrassen_noecho N=$x | awk '{print $2}' )" >> "$STRASSEN_OUTPUT"
+	echo "$x $( make runstrassen_noecho N=$x | awk '{print $2}' )" >> "$STRASSEN_OUTPUT"
 done
-# python3 plot_matrix_data.py "$OUTPUT_FILE"
+python3 plot_matrix_data.py "$NAIVE_OUTPUT" "$STRASSEN_OUTPUT"
 
