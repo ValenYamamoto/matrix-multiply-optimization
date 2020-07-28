@@ -17,7 +17,7 @@ main.o : matrixUtil.h naive.h main_p1.c
 	$(CC) $(CFLAGS) -c main_p1.c -o main.o
 
 strassen: matrixUtil.o main_strassen.o strassen.o
-	$(CC) $(CFLAGS) -o $@  strassen.o matrixUtil.o main_strassen.o
+	$(CC) $(CFLAGS) -o $@  strassen.o matrixUtil.o main_strassen.o -pthread
 
 strassen.o: strassen.c strassen.h matrixUtil.h
 	$(CC) $(CFLAGS) -c strassen.c -o strassen.o

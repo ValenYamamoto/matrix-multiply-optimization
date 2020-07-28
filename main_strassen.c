@@ -31,7 +31,7 @@ int main( int argc, char *argv[] )
 	debug = ( argc > 5 ) ? atoi( argv[ DEBUG_INDEX ] ) : 0 ;
 	
 	gettimeofday( &start, NULL );
-	strassen2( N, a, b, c );
+	strassen_thread_spawn( N, a, b, c );
 	gettimeofday( &end, NULL );
 
 	correct = checkAnswer( N, c, answer, debug );

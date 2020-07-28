@@ -9,6 +9,13 @@ struct thread_info {
 	int end;
 };
 
+struct strassen_args {
+  int n;
+  double *m1;
+  double *m2;
+  double *answer;
+};
+
 void readMatrixFromFile( char *filepath, double *m );
 
 int checkAnswer( int n, double *result, double *answer, int debug );
