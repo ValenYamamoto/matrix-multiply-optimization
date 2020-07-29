@@ -9,6 +9,15 @@ struct thread_info {
 	int end;
 };
 
+struct thread_info_float {
+	long size;
+	float *m1;
+	float *m2;
+	float *answer;
+	int start;
+	int end;
+};
+
 struct strassen_args {
   int n;
   double *m1;
@@ -19,6 +28,10 @@ struct strassen_args {
 void readMatrixFromFile( char *filepath, double *m );
 
 int checkAnswer( int n, double *result, double *answer, int debug );
+
+void readMatrixFromFile_float( char *filepath, float *m );
+
+int checkAnswer_float( int n, float *result, float *answer, int debug );
 
 void generateMatrix( int n, double *m );
 

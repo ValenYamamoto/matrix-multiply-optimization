@@ -29,7 +29,7 @@ int main( int argc, char *argv[] )
   // pthreads setup
 	num_threads = atoi( argv[ NUM_THREADS_INDEX ] );
 	pthread_t threads[ num_threads ];
-	struct thread_info thread_info_array[ num_threads ];
+	struct thread_info_float thread_info_array[ num_threads ];
 	pthread_attr_t attr;
 	int rc;
 
@@ -50,14 +50,14 @@ int main( int argc, char *argv[] )
   write_perf_count_off( fd, num_threads, &write_batch );
   zero_counter( fd, num_threads, &zero_batch );
 
-	double *a = ( double * ) malloc( N * N * sizeof( double ));
-	double *b = ( double * ) malloc( N * N * sizeof( double ));
-	double *c = ( double * ) malloc( N * N * sizeof( double ));
-	double *answer = ( double * ) malloc( N * N * sizeof( double ));
+	float *a = ( float * ) malloc( N * N * sizeof( float ));
+	float *b = ( float * ) malloc( N * N * sizeof( float ));
+	float *c = ( float * ) malloc( N * N * sizeof( float ));
+	float *answer = ( float * ) malloc( N * N * sizeof( float ));
 	
-	readMatrixFromFile( argv[ M1_INDEX ], a );
-	readMatrixFromFile( argv[ M2_INDEX ], b );
-	readMatrixFromFile( argv[ ANSWER_INDEX ], answer );
+	readMatrixFromFile_float( argv[ M1_INDEX ], a );
+	readMatrixFromFile_float( argv[ M2_INDEX ], b );
+	readMatrixFromFile_float( argv[ ANSWER_INDEX ], answer );
 
 	debug = ( argc > 6 ) ? atoi( argv[ DEBUG_INDEX ] ) : 0 ;
 
@@ -78,7 +78,7 @@ int main( int argc, char *argv[] )
 		thread_info_array[t].start = step * t;
 		thread_info_array[t].end = ( t != num_threads - 1) ? ( step * ( t + 1 ) ) : N ;	
 //		printf( "Thread t=%ld	start=%d 	end=%d", t, thread_info_array[t].start, thread_info_array[t].end );
-		rc = pthread_create( &threads[t], &attr, naiveMultiply_parallel, (void *)&thread_info_array[t] );
+		rc = pthread_create( &threads[t], &attr, naiveMultiply_parallel_float, (void *)&thread_info_array[t] );
 		if (rc) {
 			printf( "ERROR; return code from pthread_craete() is %d\n", rc );
 			exit( -1 );
@@ -103,11 +103,12 @@ int main( int argc, char *argv[] )
 
 	pthread_attr_destroy( &attr );
 
-	correct = checkAnswer( N, c, answer, debug );
+	correct = checkAnswer_float( N, c, answer, debug );
 //	printf( "Answer is (%d): %s\n", correct, (correct? "correct" : "incorrect") );
 	//exetime = ( end.tv_sec - start.tv_sec ) + ( end.tv_usec - start.tv_usec ) / 1000000.0;
 //	printf( "Execution time is %.0f microseconds\n", exetime );
 	//printf( "%d %.6f\n", correct, exetime );
+	printf( "%d\n", correct );
 
 	free( a );
 	free( b );

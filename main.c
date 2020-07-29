@@ -15,9 +15,11 @@
 int main( int argc, char *argv[] )
 {
 	int N, correct, debug, fd;
-	double exetime;
-	struct timeval start, end;
-  struct msr_batch_array batch;
+	//double exetime;
+	//struct timeval start, end;
+  struct msr_batch_array read_batch, write_batch, zero_batch;
+  struct msr_batch_op start_op[ NUM_READ_MSRS ], stop_op[ NUM_READ_MSRS ], write_op[ NUM_WRITE_MSRS ], zero_op[ NUM_ZERO_MSRS ];
+  struct msr_deltas deltas[1];
 
 	N = atoi( argv[ N_INDEX ] );
 
@@ -32,17 +34,33 @@ int main( int argc, char *argv[] )
 
 	debug = ( argc > 5 ) ? atoi( argv[ DEBUG_INDEX ] ) : 0 ;
 	
-  fd = open( "/dev/cpu/msr_batch", O_RDWR );
+  // msr setup
+  fd = open_msr_fd();
+  write_batch.numops = NUM_WRITE_MSRS;
+  write_batch.ops = write_op;
 
-  write_perf_count_on( fd, 1, &batch ); 
-  read_msrs( fd, 1, &batch );
+  read_batch.numops = NUM_READ_MSRS;
+  read_batch.ops = start_op;
+
+  zero_batch.numops = NUM_ZERO_MSRS;
+  zero_batch.ops = zero_op;
+
+  write_perf_count_off( fd, 1, &write_batch ); 
+  zero_counter( fd, 1, &zero_batch );
+  write_perf_count_on( fd, 1, &write_batch ); 
+  read_msrs( fd, 1, &read_batch );
 
 	//gettimeofday( &start, NULL );
 	naiveMultiply( N, a, b, c );
 	//gettimeofday( &end, NULL );
 
-  write_perf_count_off( fd, 1, &batch );
-  read_msrs( fd, 1, &batch );
+  write_perf_count_off( fd, 1, &write_batch );
+  read_batch.ops = stop_op;
+  read_msrs( fd, 1, &read_batch );
+
+  get_msrdata( 1, start_op, stop_op, deltas );
+  print_msrdelta( 1, deltas );
+  //print_debug( 1, start_op, stop_op );
 
 	correct = checkAnswer( N, c, answer, debug );
 //	printf( "Answer is (%d): %s\n", correct, (correct? "correct" : "incorrect") );

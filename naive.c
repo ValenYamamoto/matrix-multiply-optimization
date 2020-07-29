@@ -79,6 +79,24 @@ void naiveMultiply( int n, double *m1, double *m2, double *result )
 	}
 }
 
+void naiveMultiply_float( int n, float *m1, float *m2, float *result )
+{
+	int i, j, k;
+	float sum;
+
+	for ( i = 0; i < n; i++ ) 
+	{
+		for ( j = 0; j < n; j++ ) 
+		{
+			sum = 0;
+			for ( k = 0; k < n; k++ )
+			{
+				sum += *( m1 + n * i + k ) * *( m2 + n * k + j );
+			}
+			*( result + n * i + j) = sum;
+		}
+	}
+}
 
 void* naiveMultiply_parallel( void *thread_args )
 {
@@ -89,6 +107,36 @@ void* naiveMultiply_parallel( void *thread_args )
 	double *m1 = args->m1;
 	double *m2 = args->m2;
 	double *result = args->answer;
+
+	long n = args->size;
+	start = args->start;
+	end = args->end;
+
+
+	for ( i = start; i < end; i++ ) 
+	{
+		for ( j = 0; j < n; j++ ) 
+		{
+			sum = 0;
+			for ( k = 0; k < n; k++ )
+			{
+				sum += *( m1 + n * i + k ) * *( m2 + n * k + j );
+			}
+			*( result + n * i + j) = sum;
+		}
+	}
+	pthread_exit( NULL );
+}
+
+void* naiveMultiply_parallel_float( void *thread_args )
+{
+	int i, j, k, start, end;
+	float sum;
+
+	struct thread_info_float *args = ( struct thread_info_float * ) thread_args;
+	float *m1 = args->m1;
+	float *m2 = args->m2;
+	float *result = args->answer;
 
 	long n = args->size;
 	start = args->start;

@@ -41,8 +41,8 @@ void readMatrixFromFile( char *filepath, double *m )
 			token = strtok( NULL, " " );
 		}
 	}
-	free( line );
-	free( token );
+  free( line );
+  free( token );
 	fclose( inFile );
 }
 
@@ -62,6 +62,44 @@ int checkAnswer( int n, double *result, double *answer, int debug )
 	return correct;
 }
 		
+void readMatrixFromFile_float( char *filepath, float *m )
+{
+	FILE *inFile;
+	ssize_t nread;
+	size_t len = 0;
+	char *line = NULL;
+	char *token;
+	int i = 0;
+
+	inFile = fopen( filepath, "r" );
+
+	while(( nread = getline( &line, &len, inFile )) != -1 ) {
+		token = strtok( line, " " );
+		while( token != NULL ) {
+			*( m + i++ ) = (float)atof( token );
+			token = strtok( NULL, " " );
+		}
+	}
+  free( line );
+  free( token );
+	fclose( inFile );
+}
+
+int checkAnswer_float( int n, float *result, float *answer, int debug )
+{
+	int i;
+	int correct = 1;
+
+	for ( i = 0; i < n * n; i++ ) {
+		if ( fabs( *( result + i ) - *( answer + i ) ) > EPSILON ) {
+			printf( "multiply answer: %.14lf	correct answer: %.14lf\n", *( result + i ), *( answer + i ));
+			correct = 0;
+		} else if ( debug )  {
+			printf( "multiply answer: %.14lf	correct answer: %.14lf\n", *( result + i ), *( answer + i ));
+		}
+	}
+	return correct;
+}
  		
 void generateMatrix( int n, double *m )
 {
