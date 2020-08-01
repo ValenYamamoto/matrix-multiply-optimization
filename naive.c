@@ -3,6 +3,8 @@
 #include <sys/time.h>
 #include <time.h>
 #include <pthread.h>
+#include <smmintrin.h>
+#include <xmmintrin.h>
 
 #include "matrixUtil.h"
 
@@ -153,6 +155,124 @@ void* naiveMultiply_parallel_float( void *thread_args )
 				sum += *( m1 + n * i + k ) * *( m2 + n * k + j );
 			}
 			*( result + n * i + j) = sum;
+		}
+	}
+	pthread_exit( NULL );
+}
+
+void* naiveMultiply_parallel_intrinsics( void *thread_args )
+{
+	int i, j, k, start, end;
+	double sum;
+
+	struct thread_info *args = ( struct thread_info * ) thread_args;
+	double *m1 = args->m1;
+	double *m2 = args->m2;
+	double *result = args->answer;
+
+	long n = args->size;
+	start = args->start;
+	end = args->end;
+
+  double a[2], b[2], c[2];
+
+	for ( i = start; i < end; i++ ) 
+	{
+		for ( j = 0; j < n; j++ ) 
+		{
+			sum = 0;
+			for ( k = 0; k < n; k+=2 )
+			{
+				//sum += *( m1 + n * i + k ) * *( m2 + n * k + j );
+        a[0] = *( m1 + n * i + k ); 
+        b[0] = *( m2 + n * k + j );
+        if( k + 1 < n ) {
+          a[1] = *( m1 + n * i + (k+1) ); 
+          b[1] = *( m2 + n * (k+1) + j );
+        } else {
+          a[1] = 0;
+          b[1] = 0;
+        }
+        dp_double( a, b, c );
+        sum += c[0];
+			}
+			*( result + n * i + j) = sum;
+		}
+	}
+	pthread_exit( NULL );
+}
+//better? i little i guess
+void* naiveMultiply_parallel_intrinsics_better( void *thread_args )
+{
+	int i, j, k, start, end;
+
+	struct thread_info *args = ( struct thread_info * ) thread_args;
+	double *m1 = args->m1;
+	double *m2 = args->m2;
+	double *result = args->answer;
+
+	long n = args->size;
+	start = args->start;
+	end = args->end;
+
+  double a1[2], a2[2], b1[2], b2[2], c[2];
+
+  __m128d t0, t1, t2, t3;
+
+  j = 0;
+	for ( i = start; i < end; i++ ) 
+	{
+		for ( k = 0; k < n; k+=4 ) 
+		{
+			//sum = 0;
+      a1[0] = *( m1 + n * i + k ); 
+      if( k + 1 < n ) {
+        a1[1] = *( m1 + n * i + (k+1) ); 
+      } else {
+        a1[1] = 0;
+      }
+      if( k + 2 < n ) {
+        a2[0] = *( m1 + n * i + (k+2) ); 
+      } else {
+        a2[0] = 0;
+      }
+      if( k + 3 < n ) {
+        a2[1] = *( m1 + n * i + (k+3) ); 
+      } else {
+        a2[1] = 0;
+      }
+      t0 = _mm_load_pd( a1 );
+      t2 = _mm_load_pd( a2 );
+			for ( j = 0; j < n; j++ )
+			{
+        b1[0] = *( m2 + n * k + j );
+        if( k + 1 < n ) {
+          b1[1] = *( m2 + n * (k+1) + j );
+        } else {
+          b1[1] = 0;
+        }
+        if( k + 2 < n ) {
+          b2[0] = *( m2 + n * (k+2) + j );
+        } else {
+          b2[0] = 0;
+        }
+        if( k + 3 < n ) {
+          b2[1] = *( m2 + n * (k+3) + j );
+        } else {
+          b2[1] = 0;
+        }
+        t1 = _mm_load_pd(b1);
+        t3 = _mm_load_pd(b2);
+        t1 = _mm_dp_pd(t0, t1, 0xff);
+        t3 = _mm_dp_pd(t2, t3, 0xff);
+
+        _mm_store_pd(c, t1);
+        *( result + n * i + j ) += c[0];
+
+        _mm_store_pd(c, t3);
+        *( result + n * i + j ) += c[0];
+			}
+			//*( result + n * i + j) = sum;
 		}
 	}
 	pthread_exit( NULL );

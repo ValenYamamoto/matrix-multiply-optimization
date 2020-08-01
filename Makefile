@@ -1,11 +1,14 @@
 CC=gcc
-CFLAGS = -Wall
+CFLAGS = -Wall -march=native
 O = -O3
 TARGET=matrix_mult
 DEBUG = 0;
 
-naive: matrixUtil.o naive.o main.o msrUtil.o
-	$(CC) $(CFLAGS) $(O) -o $@ naive.o matrixUtil.o main.o msrUtil.o -pthread -lm
+naive: matrixUtil.o naive.o main_naive.o msrUtil.o
+	$(CC) $(CFLAGS) $(O) -o $@ naive.o matrixUtil.o main_naive.o msrUtil.o -pthread -lm
+
+naive_intrinsics: matrixUtil.o naive.o main_naive_intrinsics.o msrUtil.o
+	$(CC) $(CFLAGS) $(O) -o $@ naive.o matrixUtil.o main_naive_intrinsics.o msrUtil.o -pthread -lm
 
 matrixUtil.o : matrixUtil.h matrixUtil.c
 	$(CC) $(CFLAGS) -c  matrixUtil.c
@@ -16,9 +19,11 @@ msrUtil.o : msrUtil.h msrUtil.c
 naive.o : naive.h naive.c
 	$(CC) $(CFLAGS) -c naive.c
 
-main.o : matrixUtil.h naive.h main_p1.c
-#	$(CC) $(CFLAGS) -c main.c
-	$(CC) $(CFLAGS) -c main_p1.c -o main.o
+main_naive.o : matrixUtil.h naive.h main_naive.c
+	$(CC) $(CFLAGS) -c main_naive.c
+
+main_naive_intrinsics.o : matrixUtil.h naive.h main_naive_intrinsics.c
+	$(CC) $(CFLAGS) -c main_naive_intrinsics.c 
 
 naive_float: matrixUtil.o naive.o msrUtil.o main_naive_float.o
 	$(CC) $(CFLAGS) $(O) -o $@ naive.o msrUtil.o main_naive_float.o matrixUtil.o -pthread -lm
@@ -40,6 +45,9 @@ runnaive:
 
 runnaive_noecho:
 	@./naive $(N) test_cases/x$(N) test_cases/y$(N) test_cases/a$(N) $(THREADS) $(DEBUG)
+
+runnaive_intrinsics:
+	./naive_intrinsics $(N) test_cases/x$(N) test_cases/y$(N) test_cases/a$(N) $(THREADS) $(DEBUG)
 
 runstrassen:
 	./strassen $(N) test_cases/x$(N) test_cases/y$(N) test_cases/a$(N) $(DEBUG) 

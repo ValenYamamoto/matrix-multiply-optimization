@@ -3,6 +3,9 @@
 #include <string.h>
 #include <math.h>
 #include <sys/types.h>
+#include <smmintrin.h>
+#include <xmmintrin.h>
+
 #include "matrixUtil.h"
 
 #if 0
@@ -186,4 +189,13 @@ void printMatrix( int n, double *m ) {
     }
     printf( "\n" );
   }
+}
+
+void dp_double( double *a, double *b, double *c ) {
+  __m128d t0, t1;
+
+  t0 = _mm_load_pd(a);
+  t1 = _mm_load_pd(b);
+  t0 = _mm_dp_pd(t0, t1, 0xff);
+  _mm_store_pd(c, t0);
 }

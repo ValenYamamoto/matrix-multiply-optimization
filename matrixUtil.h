@@ -44,3 +44,5 @@ void split( int n, int quadrant, double *m, double *result );
 void combine( int n, double *a, double *b, double *c, double *d, double *result );
 
 void printMatrix( int n, double *m );
+
+void dp_double( double *a, double *b, double *c ); 
