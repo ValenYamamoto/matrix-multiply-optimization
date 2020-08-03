@@ -130,6 +130,61 @@ void* naiveMultiply_parallel( void *thread_args )
 	pthread_exit( NULL );
 }
 
+// better?
+void* naiveMultiply_parallel_better( void *thread_args )
+{
+	int i, j, k, start, end;
+
+	struct thread_info *args = ( struct thread_info * ) thread_args;
+	double *m1 = args->m1;
+	double *m2 = args->m2;
+	double *result = args->answer;
+
+	long n = args->size;
+	start = args->start;
+	end = args->end;
+
+	double a0, a1, a2, a3;
+
+
+	for ( i = start; i < end; i++ ) 
+	{
+		for ( k = 0; k < n; k+=4 ) 
+		{
+			a0 = *( m1 + n * i + k );
+			if ( k + 1 < n) { 
+				a1 = *( m1 + n * i + (k+1) );
+			} else {
+				a1 = 0;
+			}
+			if ( k + 2 < n) { 
+				a2 = *( m1 + n * i + (k+2) );
+			} else {
+				a2 = 0;
+			}
+			if ( k + 3 < n) { 
+				a3 = *( m1 + n * i + (k+3) );
+			} else {
+				a3 = 0;
+			}
+			for ( j = 0; j < n; j++ )
+			{
+				*( result + n * i + j ) += a0 * *( m2 + n * k + j ); 
+				if ( k + 1 < n ) {
+					*( result + n * i + j ) += a1 * *( m2 + n * (k+1) + j ) 
+				}
+				if( k + 2 < n ) {
+					*( result + n * i + j ) += a2 * *( m2 + n * (k+2) + j ) 
+				}
+				if( k + 3 < n ) {
+					*( result + n * i + j ) += a3 * *( m2 + n * (k+3) + j );
+				}
+			}
+		}
+	}
+	pthread_exit( NULL );
+}
+
 void* naiveMultiply_parallel_float( void *thread_args )
 {
 	int i, j, k, start, end;
