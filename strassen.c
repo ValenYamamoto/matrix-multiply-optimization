@@ -1,6 +1,8 @@
 #include <stdlib.h>
 #include <stdio.h>
 #include <pthread.h>
+#include <smmintrin.h>
+#include <xmmintrin.h>
 
 #include "./matrixUtil.h"
 #include "./strassen.h"
@@ -448,47 +450,128 @@ void strassen3( int n, double *m1, double *m2, double *answer ) {
   }
 }
 
-// to spawn seven threads
-void strassen_thread_spawn( int n, double *m1, double *m2, double *answer ) {
+// with intrinsics try 1
+void strassen4( int n, double *m1, double *m2, double *answer ) {
 
   // base case n = 1
   if( n == 1 ) {
     *answer = *m1 * *m2;
+  } else if( n == 2 ) {
+    __m128d addreg1, addreg2, addreg3, addreg4, addreg5, addreg6, subreg1, subreg2, subreg3, subreg4;
+    __m128d mulreg1, mulreg2, mulreg3, mulreg4;
+    double add1[2], add2[2], add3[2], add4[2], add5[2], add6[2], sub1[2], sub2[2], sub3[2], sub4[4];
+    double mul1[2], mul2[2], mul3[2], mul4[2], t56[2];
+
+    // load into arrays
+    add1[0] = *m1; // a
+    add1[1] = *( m1 + 2 ); // c
+
+    add2[0] = *( m1 + 1 ); // b
+    add2[1] = *( m1 + 3 ); // d
+
+    add3[0] = *m1; // a
+    add3[1] = *m2; //e
+
+    add4[0] = *( m1 + 3 ); // d
+    add4[1] = *( m2 + 3 ); // h
+
+    add5[0] = *( m2 + 2 ); // g
+    add5[1] = *m2; // e
+
+    add6[0] = *( m2 + 3 ); // h
+    add6[1] = *( m2 + 1 ); // f
+
+    sub1[0] = *( m2 + 1 ); // f
+    sub1[1] = *( m2 + 2 ); // g
+
+    sub2[0] = *( m2 + 3 ); // h
+    sub2[1] = *m2; // e
+
+    sub3[0] = *( m1 + 1 ); // b
+    sub3[1] = *m1; // a
+
+    sub4[0] = *( m1 + 3 );
+    sub4[1] = *( m1 + 2 );
+
+    // load in registers
+    addreg1 = _mm_load_pd( add1 );
+    addreg2 = _mm_load_pd( add2 );
+    addreg3 = _mm_load_pd( add3 );
+    addreg4 = _mm_load_pd( add4 );
+    addreg5 = _mm_load_pd( add5 );
+    addreg6 = _mm_load_pd( add6 );
+
+    subreg1 = _mm_load_pd( sub1 );
+    subreg2 = _mm_load_pd( sub2 );
+    subreg3 = _mm_load_pd( sub3 );
+    subreg4 = _mm_load_pd( sub4 );
+
+    // do add/sub
+    addreg1 = _mm_add_pd( addreg1, addreg2 );
+    addreg3 = _mm_add_pd( addreg3, addreg4 );
+    addreg5 = _mm_add_pd( addreg5, addreg6 );
+
+    subreg1 = _mm_sub_pd( subreg1, subreg2 );
+    subreg3 = _mm_sub_pd( subreg3, subreg4 );
+
+    // unload values
+    _mm_store_pd( t56, addreg3 );
+
+    // load extra mul arrays
+    mul1[0] = *m1; // a
+    mul1[1] = *( m1 + 3 ); // d
+
+    mul2[0] = *( m2 + 3 ); // h
+    mul2[1] = *m2; // e
+
+    mul3[0] = t56[0]; // t5
+    mul3[1] = 0;
+
+    mul4[0] = t56[1]; // t6
+    mul4[1] = 0;
+
+    // load into registers
+    mulreg1 = _mm_load_pd( mul1 );
+    mulreg2 = _mm_load_pd( mul2 );
+    mulreg3 = _mm_load_pd( mul3 );
+    mulreg4 = _mm_load_pd( mul4 );
+
+    // do multiplication
+    mulreg1 = _mm_mul_pd( subreg1, mulreg1 ); // M1, M4
+    mulreg2 = _mm_mul_pd( addreg1, mulreg2 ); // M2, M3
+    mulreg3 = _mm_mul_pd( mulreg3, mulreg4 ); // M5
+    mulreg4 = _mm_mul_pd( addreg5, subreg3 ); // M6, M7
+
+    // unload into arrays
+    _mm_store_pd( mul1, mulreg1 ); // M1, M4
+    _mm_store_pd( mul2, mulreg2 ); // M2, M3
+    _mm_store_pd( mul3, mulreg3 ); // M5
+    _mm_store_pd( mul4, mulreg4 ); // M6, M7
+
+    // combine into answer matrix
+    *answer = mul3[0] + mul1[1] - mul2[0] + mul4[0];
+    *( answer + 1 ) = mul1[0] + mul2[0];
+    *( answer + 2 ) = mul2[1] + mul1[1];
+    *( answer + 3 ) = mul1[0] + mul3[0] - mul2[1] - mul4[1];
+
+
   } else {
-    // setup for threads
-    pthread_t threads[ 7 ]; // seven for now
-    struct strassen_args args_array[ 7 ];
-    pthread_attr_t attr;
-    void *status;
-    int rc, t;
-
-    pthread_attr_init( &attr );
-    pthread_attr_setdetachstate( &attr, PTHREAD_CREATE_JOINABLE );
-
     // split each into four mini matrices
     double *a = ( double * ) malloc ( ( n * n / 4 ) * sizeof( double ) );
-    double *b = ( double * ) malloc ( ( n * n / 4 ) * sizeof( double ) );
-    double *c = ( double * ) malloc ( ( n * n / 4 ) * sizeof( double ) );
     double *d = ( double * ) malloc ( ( n * n / 4 ) * sizeof( double ) );
     double *e = ( double * ) malloc ( ( n * n / 4 ) * sizeof( double ) );
-    double *f = ( double * ) malloc ( ( n * n / 4 ) * sizeof( double ) );
-    double *g = ( double * ) malloc ( ( n * n / 4 ) * sizeof( double ) );
     double *h = ( double * ) malloc ( ( n * n / 4 ) * sizeof( double ) );
 
     split( n, 1, m1, a );
-    split( n, 2, m1, b );
-    split( n, 3, m1, c );
     split( n, 4, m1, d );
     split( n, 1, m2, e );
-    split( n, 2, m2, f );
-    split( n, 3, m2, g );
     split( n, 4, m2, h );
 
     if ( DEBUG_SPLIT ) {
       printMatrix( n/2, a );
-      printMatrix( n/2, b );
-      printMatrix( n/2, c );
       printMatrix( n/2, d );
+      printMatrix( n/2, e );
+      printMatrix( n/2, h );
     }
 
     // intermediate products and recursive calls
@@ -511,16 +594,255 @@ void strassen_thread_spawn( int n, double *m1, double *m2, double *answer ) {
     double *inter8 = ( double * ) malloc ( ( n * n / 4 ) * sizeof( double ) );
     double *inter9 = ( double * ) malloc ( ( n * n / 4 ) * sizeof( double ) );
 
-    subtractMatrix( n/2, f, h, inter0 );
-    addMatrix( n/2, a, b, inter1 );
-    addMatrix( n/2, c, d, inter2 );
-    subtractMatrix( n/2, g, e, inter3 );
-    addMatrix( n/2, a, d, inter4 );
-    addMatrix( n/2, e, h, inter5 );
-    subtractMatrix( n/2, b, d, inter6 );
-    addMatrix( n/2, g, h, inter7);
-    subtractMatrix( n/2, a, c, inter8 );
-    addMatrix( n/2, e, f, inter9 );
+    int i, j;
+    //subtractMatrix( n/2, f, h, inter0 );
+    for( i = 0; i < n/2; i++ ) {
+	    for( j = 0; j < n/2; j++ ) {
+		    *( inter0 + (n/2) * i + j ) = *( m2 + n * i + j + (n/2) ) - *( m2 + n * (i + n/2) + j + (n/2) );
+	    }
+    }
+    //addMatrix( n/2, a, b, inter1 );
+    for( i = 0; i < n/2; i++ ) {
+	    for( j = 0; j < n/2; j++ ) {
+		    *( inter1 + (n/2) * i + j ) = *( m1 + n * i + j ) + *( m1 + n * i + j + n/2 );
+	    }
+    }
+    //addMatrix( n/2, c, d, inter2 );
+    for( i = 0; i < n/2; i++ ) {
+	    for( j = 0; j < n/2; j++ ) {
+		    *( inter2 + (n/2) * i + j ) = *( m1 + n * (i + n/2) + j ) + *( m1 + n * (i + n/2) + j + n/2 );
+	    }
+    }
+    //subtractMatrix( n/2, g, e, inter3 );
+    for( i = 0; i < n/2; i++ ) {
+	    for( j = 0; j < n/2; j++ ) {
+		    *( inter3 + (n/2) * i + j ) = *( m2 + n * (i + n/2) + j ) - *( m2 + n * i + j );
+	    }
+    }
+    //addMatrix( n/2, a, d, inter4 );
+    for( i = 0; i < n/2; i++ ) {
+	    for( j = 0; j < n/2; j++ ) {
+		    *( inter4 + (n/2) * i + j ) = *( m1 + n * i + j ) + *( m1 + n * (i + n/2) + j + n/2 );
+	    }
+    }
+    //addMatrix( n/2, e, h, inter5 );
+    for( i = 0; i < n/2; i++ ) {
+	    for( j = 0; j < n/2; j++ ) {
+		    *( inter5 + (n/2) * i + j ) = *( m2 + n * i + j ) + *( m2 + n * (i + n/2) + j + n/2 );
+	    }
+    }
+    //subtractMatrix( n/2, b, d, inter6 );
+    for( i = 0; i < n/2; i++ ) {
+	    for( j = 0; j < n/2; j++ ) {
+		    *( inter6 + (n/2) * i + j ) = *( m1 + n * i + j + n/2 ) - *( m1 + n * (i + n/2) + j + n/2 );
+	    }
+    }
+    //addMatrix( n/2, g, h, inter7);
+    for( i = 0; i < n/2; i++ ) {
+	    for( j = 0; j < n/2; j++ ) {
+		    *( inter7 + (n/2) * i + j ) = *( m2 + n * (i + n/2) + j ) + *( m2 + n * (i + n/2) + j + n/2 );
+	    }
+    }
+    //subtractMatrix( n/2, a, c, inter8 );
+    for( i = 0; i < n/2; i++ ) {
+	    for( j = 0; j < n/2; j++ ) {
+		    *( inter8 + (n/2) * i + j ) = *( m1 + n * i + j ) - *( m1 + n * (i + n/2) + j );
+	    }
+    }
+    //addMatrix( n/2, e, f, inter9 );
+    for( i = 0; i < n/2; i++ ) {
+	    for( j = 0; j < n/2; j++ ) {
+		    *( inter9 + (n/2) * i + j ) = *( m2 + n * i + j ) + *( m2 + n * i + j + n/2 );
+	    }
+    }
+
+    if ( DEBUG_INTER ) {
+      printMatrix( n/2, inter0 );
+      printMatrix( n/2, inter1 );
+      printMatrix( n/2, inter2 );
+      printMatrix( n/2, inter3 );
+      printMatrix( n/2, inter4 );
+      printMatrix( n/2, inter5 );
+      printMatrix( n/2, inter6 );
+      printMatrix( n/2, inter7 );
+      printMatrix( n/2, inter8 );
+      printMatrix( n/2, inter9 );
+    }
+    strassen4( n/2, a, inter0, p1 );
+    strassen4( n/2, inter1, h, p2 );
+    strassen4( n/2, inter2, e, p3 );
+    strassen4( n/2, d, inter3, p4 );
+    strassen4( n/2, inter4, inter5, p5 );
+    strassen4( n/2, inter6, inter7, p6 );
+    strassen4( n/2, inter8, inter9, p7 );
+
+    if ( DEBUG_RECUR ) {
+      printMatrix(n/2, p1 );
+      printMatrix(n/2, p2 );
+      printMatrix(n/2, p3 );
+      printMatrix(n/2, p4 );
+      printMatrix(n/2, p5 );
+      printMatrix(n/2, p6 );
+      printMatrix(n/2, p7 );
+    }
+
+    // combine into four mini matrices
+    addMatrix( n/2, p5, p4, a );
+    subtractMatrix( n/2, a, p2, a );
+    addMatrix( n/2, a, p6, a );
+
+    addMatrix( n/2, p1, p2, h );
+
+    addMatrix( n/2, p3, p4, e );
+
+    addMatrix( n/2, p1, p5, d );
+    subtractMatrix( n/2, d, p3, d );
+    subtractMatrix( n/2, d, p7, d );
+
+    combine( n, a, h, e, d, answer );
+
+    free( a );
+    free( d );
+    free( e );
+    free( h );
+
+    free( p1 );
+    free( p2 );
+    free( p3 );
+    free( p4 );
+    free( p5 );
+    free( p6 );
+    free( p7 );
+
+    free( inter0 );
+    free( inter1 );
+    free( inter2 );
+    free( inter3 );
+    free( inter4 );
+    free( inter5 );
+    free( inter6 );
+    free( inter7 );
+    free( inter8 );
+    free( inter9 );
+  }
+}
+
+// to spawn seven threads
+void strassen_thread_spawn( int n, double *m1, double *m2, double *answer ) {
+
+  // base case n = 1
+  if( n == 1 ) {
+    *answer = *m1 * *m2;
+  } else {
+    // setup for threads
+    pthread_t threads[ 7 ]; // seven for now
+    struct strassen_args args_array[ 7 ];
+    pthread_attr_t attr;
+    void *status;
+    int rc, t;
+
+    pthread_attr_init( &attr );
+    pthread_attr_setdetachstate( &attr, PTHREAD_CREATE_JOINABLE );
+
+    // split each into four mini matrices
+    double *a = ( double * ) malloc ( ( n * n / 4 ) * sizeof( double ) );
+    double *d = ( double * ) malloc ( ( n * n / 4 ) * sizeof( double ) );
+    double *e = ( double * ) malloc ( ( n * n / 4 ) * sizeof( double ) );
+    double *h = ( double * ) malloc ( ( n * n / 4 ) * sizeof( double ) );
+
+    split( n, 1, m1, a );
+    split( n, 4, m1, d );
+    split( n, 1, m2, e );
+    split( n, 4, m2, h );
+
+    if ( DEBUG_SPLIT ) {
+      printMatrix( n/2, a );
+      printMatrix( n/2, d );
+      printMatrix( n/2, e );
+      printMatrix( n/2, h );
+    }
+
+    // intermediate products and recursive calls
+    double *p1 = ( double * ) malloc ( ( n * n / 4 ) * sizeof( double ) );
+    double *p2 = ( double * ) malloc ( ( n * n / 4 ) * sizeof( double ) );
+    double *p3 = ( double * ) malloc ( ( n * n / 4 ) * sizeof( double ) );
+    double *p4 = ( double * ) malloc ( ( n * n / 4 ) * sizeof( double ) );
+    double *p5 = ( double * ) malloc ( ( n * n / 4 ) * sizeof( double ) );
+    double *p6 = ( double * ) malloc ( ( n * n / 4 ) * sizeof( double ) );
+    double *p7 = ( double * ) malloc ( ( n * n / 4 ) * sizeof( double ) );
+
+    double *inter0 = ( double * ) malloc ( ( n * n / 4 ) * sizeof( double ) );
+    double *inter1 = ( double * ) malloc ( ( n * n / 4 ) * sizeof( double ) );
+    double *inter2 = ( double * ) malloc ( ( n * n / 4 ) * sizeof( double ) );
+    double *inter3 = ( double * ) malloc ( ( n * n / 4 ) * sizeof( double ) );
+    double *inter4 = ( double * ) malloc ( ( n * n / 4 ) * sizeof( double ) );
+    double *inter5 = ( double * ) malloc ( ( n * n / 4 ) * sizeof( double ) );
+    double *inter6 = ( double * ) malloc ( ( n * n / 4 ) * sizeof( double ) );
+    double *inter7 = ( double * ) malloc ( ( n * n / 4 ) * sizeof( double ) );
+    double *inter8 = ( double * ) malloc ( ( n * n / 4 ) * sizeof( double ) );
+    double *inter9 = ( double * ) malloc ( ( n * n / 4 ) * sizeof( double ) );
+
+    int i, j;
+    //subtractMatrix( n/2, f, h, inter0 );
+    for( i = 0; i < n/2; i++ ) {
+	    for( j = 0; j < n/2; j++ ) {
+		    *( inter0 + (n/2) * i + j ) = *( m2 + n * i + j + (n/2) ) - *( m2 + n * (i + n/2) + j + (n/2) );
+	    }
+    }
+    //addMatrix( n/2, a, b, inter1 );
+    for( i = 0; i < n/2; i++ ) {
+	    for( j = 0; j < n/2; j++ ) {
+		    *( inter1 + (n/2) * i + j ) = *( m1 + n * i + j ) + *( m1 + n * i + j + n/2 );
+	    }
+    }
+    //addMatrix( n/2, c, d, inter2 );
+    for( i = 0; i < n/2; i++ ) {
+	    for( j = 0; j < n/2; j++ ) {
+		    *( inter2 + (n/2) * i + j ) = *( m1 + n * (i + n/2) + j ) + *( m1 + n * (i + n/2) + j + n/2 );
+	    }
+    }
+    //subtractMatrix( n/2, g, e, inter3 );
+    for( i = 0; i < n/2; i++ ) {
+	    for( j = 0; j < n/2; j++ ) {
+		    *( inter3 + (n/2) * i + j ) = *( m2 + n * (i + n/2) + j ) - *( m2 + n * i + j );
+	    }
+    }
+    //addMatrix( n/2, a, d, inter4 );
+    for( i = 0; i < n/2; i++ ) {
+	    for( j = 0; j < n/2; j++ ) {
+		    *( inter4 + (n/2) * i + j ) = *( m1 + n * i + j ) + *( m1 + n * (i + n/2) + j + n/2 );
+	    }
+    }
+    //addMatrix( n/2, e, h, inter5 );
+    for( i = 0; i < n/2; i++ ) {
+	    for( j = 0; j < n/2; j++ ) {
+		    *( inter5 + (n/2) * i + j ) = *( m2 + n * i + j ) + *( m2 + n * (i + n/2) + j + n/2 );
+	    }
+    }
+    //subtractMatrix( n/2, b, d, inter6 );
+    for( i = 0; i < n/2; i++ ) {
+	    for( j = 0; j < n/2; j++ ) {
+		    *( inter6 + (n/2) * i + j ) = *( m1 + n * i + j + n/2 ) - *( m1 + n * (i + n/2) + j + n/2 );
+	    }
+    }
+    //addMatrix( n/2, g, h, inter7);
+    for( i = 0; i < n/2; i++ ) {
+	    for( j = 0; j < n/2; j++ ) {
+		    *( inter7 + (n/2) * i + j ) = *( m2 + n * (i + n/2) + j ) + *( m2 + n * (i + n/2) + j + n/2 );
+	    }
+    }
+    //subtractMatrix( n/2, a, c, inter8 );
+    for( i = 0; i < n/2; i++ ) {
+	    for( j = 0; j < n/2; j++ ) {
+		    *( inter8 + (n/2) * i + j ) = *( m1 + n * i + j ) - *( m1 + n * (i + n/2) + j );
+	    }
+    }
+    //addMatrix( n/2, e, f, inter9 );
+    for( i = 0; i < n/2; i++ ) {
+	    for( j = 0; j < n/2; j++ ) {
+		    *( inter9 + (n/2) * i + j ) = *( m2 + n * i + j ) + *( m2 + n * i + j + n/2 );
+	    }
+    }
 
     if ( DEBUG_INTER ) {
       printMatrix( n/2, inter0 );
@@ -629,23 +951,19 @@ void strassen_thread_spawn( int n, double *m1, double *m2, double *answer ) {
     subtractMatrix( n/2, a, p2, a );
     addMatrix( n/2, a, p6, a );
 
-    addMatrix( n/2, p1, p2, b );
+    addMatrix( n/2, p1, p2, h );
 
-    addMatrix( n/2, p3, p4, c );
+    addMatrix( n/2, p3, p4, e );
 
     addMatrix( n/2, p1, p5, d );
     subtractMatrix( n/2, d, p3, d );
     subtractMatrix( n/2, d, p7, d );
 
-    combine( n, a, b, c, d, answer );
+    combine( n, a, h, e, d, answer );
 
     free( a );
-    free( b );
-    free( c );
     free( d );
     free( e );
-    free( f );
-    free( g );
     free( h );
 
     free( p1 );
@@ -684,28 +1002,20 @@ void *strassen_parallel_thread_func( void *thread_args ) {
   } else {
     // split each into four mini matrices
     double *a = ( double * ) malloc ( ( n * n / 4 ) * sizeof( double ) );
-    double *b = ( double * ) malloc ( ( n * n / 4 ) * sizeof( double ) );
-    double *c = ( double * ) malloc ( ( n * n / 4 ) * sizeof( double ) );
     double *d = ( double * ) malloc ( ( n * n / 4 ) * sizeof( double ) );
     double *e = ( double * ) malloc ( ( n * n / 4 ) * sizeof( double ) );
-    double *f = ( double * ) malloc ( ( n * n / 4 ) * sizeof( double ) );
-    double *g = ( double * ) malloc ( ( n * n / 4 ) * sizeof( double ) );
     double *h = ( double * ) malloc ( ( n * n / 4 ) * sizeof( double ) );
 
     split( n, 1, m1, a );
-    split( n, 2, m1, b );
-    split( n, 3, m1, c );
     split( n, 4, m1, d );
     split( n, 1, m2, e );
-    split( n, 2, m2, f );
-    split( n, 3, m2, g );
     split( n, 4, m2, h );
 
     if ( DEBUG_SPLIT ) {
       printMatrix( n/2, a );
-      printMatrix( n/2, b );
-      printMatrix( n/2, c );
       printMatrix( n/2, d );
+      printMatrix( n/2, e );
+      printMatrix( n/2, h );
     }
 
     // intermediate products and recursive calls
@@ -728,16 +1038,67 @@ void *strassen_parallel_thread_func( void *thread_args ) {
     double *inter8 = ( double * ) malloc ( ( n * n / 4 ) * sizeof( double ) );
     double *inter9 = ( double * ) malloc ( ( n * n / 4 ) * sizeof( double ) );
 
-    subtractMatrix( n/2, f, h, inter0 );
-    addMatrix( n/2, a, b, inter1 );
-    addMatrix( n/2, c, d, inter2 );
-    subtractMatrix( n/2, g, e, inter3 );
-    addMatrix( n/2, a, d, inter4 );
-    addMatrix( n/2, e, h, inter5 );
-    subtractMatrix( n/2, b, d, inter6 );
-    addMatrix( n/2, g, h, inter7);
-    subtractMatrix( n/2, a, c, inter8 );
-    addMatrix( n/2, e, f, inter9 );
+    int i, j;
+    //subtractMatrix( n/2, f, h, inter0 );
+    for( i = 0; i < n/2; i++ ) {
+	    for( j = 0; j < n/2; j++ ) {
+		    *( inter0 + (n/2) * i + j ) = *( m2 + n * i + j + (n/2) ) - *( m2 + n * (i + n/2) + j + (n/2) );
+	    }
+    }
+    //addMatrix( n/2, a, b, inter1 );
+    for( i = 0; i < n/2; i++ ) {
+	    for( j = 0; j < n/2; j++ ) {
+		    *( inter1 + (n/2) * i + j ) = *( m1 + n * i + j ) + *( m1 + n * i + j + n/2 );
+	    }
+    }
+    //addMatrix( n/2, c, d, inter2 );
+    for( i = 0; i < n/2; i++ ) {
+	    for( j = 0; j < n/2; j++ ) {
+		    *( inter2 + (n/2) * i + j ) = *( m1 + n * (i + n/2) + j ) + *( m1 + n * (i + n/2) + j + n/2 );
+	    }
+    }
+    //subtractMatrix( n/2, g, e, inter3 );
+    for( i = 0; i < n/2; i++ ) {
+	    for( j = 0; j < n/2; j++ ) {
+		    *( inter3 + (n/2) * i + j ) = *( m2 + n * (i + n/2) + j ) - *( m2 + n * i + j );
+	    }
+    }
+    //addMatrix( n/2, a, d, inter4 );
+    for( i = 0; i < n/2; i++ ) {
+	    for( j = 0; j < n/2; j++ ) {
+		    *( inter4 + (n/2) * i + j ) = *( m1 + n * i + j ) + *( m1 + n * (i + n/2) + j + n/2 );
+	    }
+    }
+    //addMatrix( n/2, e, h, inter5 );
+    for( i = 0; i < n/2; i++ ) {
+	    for( j = 0; j < n/2; j++ ) {
+		    *( inter5 + (n/2) * i + j ) = *( m2 + n * i + j ) + *( m2 + n * (i + n/2) + j + n/2 );
+	    }
+    }
+    //subtractMatrix( n/2, b, d, inter6 );
+    for( i = 0; i < n/2; i++ ) {
+	    for( j = 0; j < n/2; j++ ) {
+		    *( inter6 + (n/2) * i + j ) = *( m1 + n * i + j + n/2 ) - *( m1 + n * (i + n/2) + j + n/2 );
+	    }
+    }
+    //addMatrix( n/2, g, h, inter7);
+    for( i = 0; i < n/2; i++ ) {
+	    for( j = 0; j < n/2; j++ ) {
+		    *( inter7 + (n/2) * i + j ) = *( m2 + n * (i + n/2) + j ) + *( m2 + n * (i + n/2) + j + n/2 );
+	    }
+    }
+    //subtractMatrix( n/2, a, c, inter8 );
+    for( i = 0; i < n/2; i++ ) {
+	    for( j = 0; j < n/2; j++ ) {
+		    *( inter8 + (n/2) * i + j ) = *( m1 + n * i + j ) - *( m1 + n * (i + n/2) + j );
+	    }
+    }
+    //addMatrix( n/2, e, f, inter9 );
+    for( i = 0; i < n/2; i++ ) {
+	    for( j = 0; j < n/2; j++ ) {
+		    *( inter9 + (n/2) * i + j ) = *( m2 + n * i + j ) + *( m2 + n * i + j + n/2 );
+	    }
+    }
 
     if ( DEBUG_INTER ) {
       printMatrix( n/2, inter0 );
@@ -774,23 +1135,19 @@ void *strassen_parallel_thread_func( void *thread_args ) {
     subtractMatrix( n/2, a, p2, a );
     addMatrix( n/2, a, p6, a );
 
-    addMatrix( n/2, p1, p2, b );
+    addMatrix( n/2, p1, p2, h );
 
-    addMatrix( n/2, p3, p4, c );
+    addMatrix( n/2, p3, p4, e );
 
     addMatrix( n/2, p1, p5, d );
     subtractMatrix( n/2, d, p3, d );
     subtractMatrix( n/2, d, p7, d );
 
-    combine( n, a, b, c, d, answer );
+    combine( n, a, h, e, d, answer );
 
     free( a );
-    free( b );
-    free( c );
     free( d );
     free( e );
-    free( f );
-    free( g );
     free( h );
 
     free( p1 );

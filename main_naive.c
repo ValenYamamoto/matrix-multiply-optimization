@@ -78,7 +78,7 @@ int main( int argc, char *argv[] )
 		thread_info_array[t].start = step * t;
 		thread_info_array[t].end = ( t != num_threads - 1) ? ( step * ( t + 1 ) ) : N ;	
 //		printf( "Thread t=%ld	start=%d 	end=%d", t, thread_info_array[t].start, thread_info_array[t].end );
-		rc = pthread_create( &threads[t], &attr, naiveMultiply_parallel, (void *)&thread_info_array[t] );
+		rc = pthread_create( &threads[t], &attr, naiveMultiply_parallel_better, (void *)&thread_info_array[t] );
 		if (rc) {
 			printf( "ERROR; return code from pthread_craete() is %d\n", rc );
 			exit( -1 );

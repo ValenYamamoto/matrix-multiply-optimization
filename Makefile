@@ -1,3 +1,4 @@
+SHELL=/bin/bash
 CC=gcc
 CFLAGS = -Wall -march=native
 O = -O3
@@ -41,22 +42,22 @@ main_strassen.o: main_strassen.c strassen.h matrixUtil.h
 	$(CC) $(CFLAGS) -c main_strassen.c -o main_strassen.o
 
 runnaive:
-	./naive $(N) test_cases/x$(N) test_cases/y$(N) test_cases/a$(N) $(THREADS) $(DEBUG)
+	numactl -C 0-$$(( $(THREADS) - 1 )) ./naive $(N) test_cases/x$(N) test_cases/y$(N) test_cases/a$(N) $(THREADS) $(DEBUG)
 
 runnaive_noecho:
-	@./naive $(N) test_cases/x$(N) test_cases/y$(N) test_cases/a$(N) $(THREADS) $(DEBUG)
+	@numactl -C 0-$$(( $(THREADS) - 1 )) ./naive $(N) test_cases/x$(N) test_cases/y$(N) test_cases/a$(N) $(THREADS) $(DEBUG)
 
 runnaive_intrinsics:
-	./naive_intrinsics $(N) test_cases/x$(N) test_cases/y$(N) test_cases/a$(N) $(THREADS) $(DEBUG)
+	numactl -C 0-$$(( $(THREADS) - 1 )) ./naive_intrinsics $(N) test_cases/x$(N) test_cases/y$(N) test_cases/a$(N) $(THREADS) $(DEBUG)
 
 runstrassen:
-	./strassen $(N) test_cases/x$(N) test_cases/y$(N) test_cases/a$(N) $(DEBUG) 
+	numactl -C 0-6 ./strassen $(N) test_cases/x$(N) test_cases/y$(N) test_cases/a$(N) $(DEBUG) 
 
 runstrassen_noecho:
-	@./strassen $(N) test_cases/x$(N) test_cases/y$(N) test_cases/a$(N) $(DEBUG) 
+	@numactl -C 0-6 ./strassen $(N) test_cases/x$(N) test_cases/y$(N) test_cases/a$(N) $(DEBUG) 
 
 runnaivefloat:
-	./naive_float $(N) test_cases/x$(N) test_cases/y$(N) test_cases/a$(N) $(THREADS) $(DEBUG)
+	numactl -C 0-$$(( $(THREADS) - 1 )) ./naive_float $(N) test_cases/x$(N) test_cases/y$(N) test_cases/a$(N) $(THREADS) $(DEBUG)
 
 clean:
 	rm -f *.o

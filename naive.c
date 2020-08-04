@@ -144,12 +144,12 @@ void* naiveMultiply_parallel_better( void *thread_args )
 	start = args->start;
 	end = args->end;
 
-	double a0, a1, a2, a3;
+	double a0, a1, a2, a3, a4, a5;
 
 
 	for ( i = start; i < end; i++ ) 
 	{
-		for ( k = 0; k < n; k+=4 ) 
+		for ( k = 0; k < n; k+=6 ) 
 		{
 			a0 = *( m1 + n * i + k );
 			if ( k + 1 < n) { 
@@ -167,17 +167,33 @@ void* naiveMultiply_parallel_better( void *thread_args )
 			} else {
 				a3 = 0;
 			}
+			if ( k + 4 < n) { 
+				a4 = *( m1 + n * i + (k+4) );
+			} else {
+				a4 = 0;
+			}
+			if ( k + 5 < n) { 
+				a5 = *( m1 + n * i + (k+5) );
+			} else {
+				a5 = 0;
+			}
 			for ( j = 0; j < n; j++ )
 			{
 				*( result + n * i + j ) += a0 * *( m2 + n * k + j ); 
 				if ( k + 1 < n ) {
-					*( result + n * i + j ) += a1 * *( m2 + n * (k+1) + j ) 
+					*( result + n * i + j ) += a1 * *( m2 + n * (k+1) + j );
 				}
 				if( k + 2 < n ) {
-					*( result + n * i + j ) += a2 * *( m2 + n * (k+2) + j ) 
+					*( result + n * i + j ) += a2 * *( m2 + n * (k+2) + j ); 
 				}
 				if( k + 3 < n ) {
 					*( result + n * i + j ) += a3 * *( m2 + n * (k+3) + j );
+				}
+				if( k + 4 < n ) {
+					*( result + n * i + j ) += a4 * *( m2 + n * (k+4) + j );
+				}
+				if( k + 5 < n ) {
+					*( result + n * i + j ) += a5 * *( m2 + n * (k+5) + j );
 				}
 			}
 		}
@@ -270,14 +286,14 @@ void* naiveMultiply_parallel_intrinsics_better( void *thread_args )
 	start = args->start;
 	end = args->end;
 
-  double a1[2], a2[2], b1[2], b2[2], c[2];
+  double a1[2], a2[2], a3[2], b1[2], b2[2], b3[2], c[2];
 
-  __m128d t0, t1, t2, t3;
+  __m128d t0, t1, t2, t3, t4, t5;
 
   j = 0;
 	for ( i = start; i < end; i++ ) 
 	{
-		for ( k = 0; k < n; k+=4 ) 
+		for ( k = 0; k < n; k+=6 ) 
 		{
 			//sum = 0;
       a1[0] = *( m1 + n * i + k ); 
@@ -296,8 +312,19 @@ void* naiveMultiply_parallel_intrinsics_better( void *thread_args )
       } else {
         a2[1] = 0;
       }
+      if( k + 4 < n ) {
+        a3[0] = *( m1 + n * i + (k+4) ); 
+      } else {
+        a3[0] = 0;
+      }
+      if( k + 5 < n ) {
+        a3[1] = *( m1 + n * i + (k+5) ); 
+      } else {
+        a3[1] = 0;
+      }
       t0 = _mm_load_pd( a1 );
       t2 = _mm_load_pd( a2 );
+      t4 = _mm_load_pd( a3 );
 			for ( j = 0; j < n; j++ )
 			{
         b1[0] = *( m2 + n * k + j );
@@ -316,15 +343,30 @@ void* naiveMultiply_parallel_intrinsics_better( void *thread_args )
         } else {
           b2[1] = 0;
         }
+        if( k + 4 < n ) {
+          b3[0] = *( m2 + n * (k+4) + j );
+        } else {
+          b3[0] = 0;
+        }
+        if( k + 5 < n ) {
+          b3[1] = *( m2 + n * (k+5) + j );
+        } else {
+          b3[1] = 0;
+        }
         t1 = _mm_load_pd(b1);
         t3 = _mm_load_pd(b2);
+        t5 = _mm_load_pd(b3);
         t1 = _mm_dp_pd(t0, t1, 0xff);
         t3 = _mm_dp_pd(t2, t3, 0xff);
+        t5 = _mm_dp_pd(t4, t5, 0xff);
 
         _mm_store_pd(c, t1);
         *( result + n * i + j ) += c[0];
 
         _mm_store_pd(c, t3);
+        *( result + n * i + j ) += c[0];
+
+        _mm_store_pd(c, t5);
         *( result + n * i + j ) += c[0];
 			}
 			//*( result + n * i + j) = sum;
