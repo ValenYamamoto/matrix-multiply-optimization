@@ -60,3 +60,5 @@ void print_msrdelta( int num_cpus, struct msr_deltas delta[] );
 void print_flop_mem_msrdelta( int num_cpus, struct msr_flop_mem_deltas delta[] ); 
 
 void print_debug( int num_cpus, struct msr_batch_op start[], struct msr_batch_op stop[] ); 
+
+void msrdelta_avg( int num_cpus, struct msr_deltas delta[], struct msr_deltas *avg ); 

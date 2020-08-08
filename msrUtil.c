@@ -77,6 +77,34 @@ void print_msrdelta( int num_cpus, struct msr_deltas delta[] ) {
   }
 }
 
+void msrdelta_avg( int num_cpus, struct msr_deltas delta[], struct msr_deltas *avg ) {
+  int i;
+  double sums[9];
+  for( i = 0; i < num_cpus; i++ ) {
+    sums[0] += (double) delta[i].retired_instruct;
+    sums[1] += (double) delta[i].cache_access;
+    sums[2] += (double) delta[i].cache_miss;
+    sums[3] += (double) delta[i].aperf;
+    sums[4] += (double) delta[i].mperf;
+    sums[5] += (double) delta[i].instruct_per_cycle;
+    sums[6] += (double) delta[i].cache_miss_per_instruct;
+    sums[7] += (double) delta[i].freq;
+    sums[8] += (double) delta[i].time;
+  }
+  for( i = 0; i < 9; i++ ) {
+    sums[i] /= (double) num_cpus;
+  }
+  avg->retired_instruct = (uint64_t)sums[0];
+  avg->cache_access = (uint64_t)sums[1];
+  avg->cache_miss = (uint64_t)sums[2];
+  avg->aperf = (uint64_t)sums[3];
+  avg->mperf = (uint64_t)sums[4];
+  avg->instruct_per_cycle = sums[5];
+  avg->cache_miss_per_instruct = sums[6];
+  avg->freq = sums[7];
+  avg->time = sums[8];
+}
+
 void print_flop_mem_msrdelta( int num_cpus, struct msr_flop_mem_deltas delta[] ) {
   int i;
   for( i = 0; i < num_cpus; i++ ) {

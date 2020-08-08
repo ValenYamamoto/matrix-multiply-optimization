@@ -54,7 +54,7 @@ int main( int argc, char *argv[] )
   read_msrs( fd, NUM_THREADS, &read_batch);
 
 	//strassen_thread_spawn( N, a, b, c );
-	strassen4( N, a, b, c );
+	strassen6( N, a, b, c );
 	//gettimeofday( &end, NULL );
 
   write_perf_count_off( fd, NUM_THREADS, &write_batch );

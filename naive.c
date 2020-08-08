@@ -233,7 +233,7 @@ void* naiveMultiply_parallel_float( void *thread_args )
 
 void* naiveMultiply_parallel_intrinsics( void *thread_args )
 {
-	int i, j, k, start, end;
+	int i, j, k, s, start, end;
 	double sum;
 
 	struct thread_info *args = ( struct thread_info * ) thread_args;
@@ -241,33 +241,37 @@ void* naiveMultiply_parallel_intrinsics( void *thread_args )
 	double *m2 = args->m2;
 	double *result = args->answer;
 
+  int size = 6;
 	long n = args->size;
 	start = args->start;
 	end = args->end;
 
-  double a[2], b[2], c[2];
+  double *a = ( double * ) malloc( size * sizeof( double ) );
+  double *b = ( double * ) malloc( size * sizeof( double ) );
+  double *c = ( double * ) malloc( size * sizeof( double ) );
 
 	for ( i = start; i < end; i++ ) 
 	{
 		for ( j = 0; j < n; j++ ) 
 		{
-			sum = 0;
-			for ( k = 0; k < n; k+=2 )
+			for ( k = 0; k < n; k+=size )
 			{
 				//sum += *( m1 + n * i + k ) * *( m2 + n * k + j );
-        a[0] = *( m1 + n * i + k ); 
-        b[0] = *( m2 + n * k + j );
-        if( k + 1 < n ) {
-          a[1] = *( m1 + n * i + (k+1) ); 
-          b[1] = *( m2 + n * (k+1) + j );
-        } else {
-          a[1] = 0;
-          b[1] = 0;
+        for( s = 0; s < size/2 && k+s*2 < n; s+=1 ) {
+          
+            a[0] = *( m1 + n * i + (k+s*2) ); 
+            b[0] = *( m2 + n * (k+s*2) + j );
+          if( k+s*2 + 1 < n ) {
+            a[1] = *( m1 + n * i + (k+s*2+1) ); 
+            b[1] = *( m2 + n * (k+s*2+1) + j );
+          } else {
+            a[1] = 0;
+            b[1] = 0;
+          }
+          dp_double( a, b, c );
+          *( result + n * i + j ) += c[0];
         }
-        dp_double( a, b, c );
-        sum += c[0];
 			}
-			*( result + n * i + j) = sum;
 		}
 	}
 	pthread_exit( NULL );
@@ -372,5 +376,124 @@ void* naiveMultiply_parallel_intrinsics_better( void *thread_args )
 			//*( result + n * i + j) = sum;
 		}
 	}
+	pthread_exit( NULL );
+}
+
+void* naiveMultiply_parallel_intrinsics_args( void *thread_args )
+{
+	int i, j, s, k, start, end;
+  int count = 0;
+
+	struct thread_info *args = ( struct thread_info * ) thread_args;
+	double *m1 = args->m1;
+	double *m2 = args->m2;
+	double *result = args->answer;
+
+	long n = args->size;
+	start = args->start;
+	end = args->end;
+
+  int size = 32;
+  double sum;
+
+  //double b[2], c[2];
+
+  //__m128d *regs = ( __m128d * ) malloc ( size * sizeof( __m128d ));
+  __m128d regs[size];
+  double b[ size * 2 ];
+  double c;
+
+  j = 0;
+	for ( i = start; i < end; i++ ) 
+	{
+		for ( k = 0; k < n; k+=size ) 
+		{
+			//sum = 0;
+      for( s = 0; s < size/2 && k+s*2 < n; s++ ) {
+        /*
+        a[0] = *( m1 + n * i + (k+s*2) ); 
+        if( k+s*2 < n ) {
+          a[1] = *( m1 + n * i + (k+s*2+1) );
+        } else {
+          a[1] = 0;
+        }
+        *( regs + s*2 ) = _mm_load_pd( a );
+        */
+        *( regs + s*2 ) = _mm_load_pd( m1 + n * i + (k+s*2) );
+      }
+			for ( j = 0; j < n; j++ )
+			{
+			  //sum = 0;
+        count = 0;
+        for( s = 0; s < size/2 /*&& k+s*2 < n*/; s++ ) {
+          count++;
+          b[ s*2 ] = *( m2 + n * (k+s*2) + j); 
+          if( k+s*2 < n ) {
+            b[ s*2+1 ] = *( m2 + n * (k+s*2+1) + j );
+          } else {
+            b[ s*2+1 ] = 0;
+          }
+        }
+        for( s = 0; s < size/2 /*&& k+s*2 < n*/; s++ ) {
+          *( regs + s*2 + 1 ) = _mm_load_pd( b + s*2  );
+          *( regs + s*2 + 1 ) = _mm_dp_pd( *( regs + s*2 ), *( regs + s*2 + 1 ), 0xff );
+          //_mm_storel_pd( &c, *( regs + s*2 + 1 ) );
+          //*( result + n * i + j ) += c;
+        }
+        for( s = 0; s < size/2 && k+s*2 < n; s++ ) {
+          _mm_storel_pd( &c, *( regs + s*2 + 1 ) );
+          *( result + n * i + j ) += c;
+        }
+        /*
+        double b1[2], b2[2], b3[2];
+        b1[0] = *( m2 + n * k + j );
+        if( k + 1 < n ) {
+          b1[1] = *( m2 + n * (k+1) + j );
+        } else {
+          b1[1] = 0;
+        }
+        if( k + 2 < n ) {
+          b2[0] = *( m2 + n * (k+2) + j );
+        } else {
+          b2[0] = 0;
+        }
+        if( k + 3 < n ) {
+          b2[1] = *( m2 + n * (k+3) + j );
+        } else {
+          b2[1] = 0;
+        }
+        if( k + 4 < n ) {
+          b3[0] = *( m2 + n * (k+4) + j );
+        } else {
+          b3[0] = 0;
+        }
+        if( k + 5 < n ) {
+          b3[1] = *( m2 + n * (k+5) + j );
+        } else {
+          b3[1] = 0;
+        }
+        regs[1] = _mm_load_pd(b1);
+        regs[3] = _mm_load_pd(b2);
+        regs[5] = _mm_load_pd(b3);
+        regs[1] = _mm_dp_pd(regs[0], regs[1], 0xff);
+        regs[3] = _mm_dp_pd(regs[2], regs[3], 0xff);
+        regs[5] = _mm_dp_pd(regs[4], regs[5], 0xff);
+
+        _mm_store_pd(c, regs[1]);
+        *( result + n * i + j ) += c[0];
+
+        _mm_store_pd(c, regs[3]);
+        *( result + n * i + j ) += c[0];
+
+        _mm_store_pd(c, regs[5]);
+        *( result + n * i + j ) += c[0];
+        //count++;
+			  // *( result + n * i + j) = sum;
+        */
+			}
+		}
+	}
+  //free( regs );
+  printf("%d\n", count );
 	pthread_exit( NULL );
 }

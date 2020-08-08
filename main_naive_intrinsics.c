@@ -12,19 +12,21 @@
 #define M1_INDEX 2
 #define M2_INDEX 3
 #define ANSWER_INDEX 4
-#define DEBUG_INDEX 6
+#define DEBUG_INDEX 7
 #define NUM_THREADS_INDEX 5
+#define PRE_READ_INDEX 6
 
 
 int main( int argc, char *argv[] )
 {
-	int N, correct, debug, num_threads, step;
+	int N, correct, debug, num_threads, step, pre_read;
 	long t;
 	double exetime;
 	struct timeval start, end;
 	void *status;
 
 	N = atoi( argv[ N_INDEX ] );
+	pre_read = atoi( argv[ PRE_READ_INDEX ] );
 
   // pthreads setup
 	num_threads = atoi( argv[ NUM_THREADS_INDEX ] );
@@ -36,7 +38,7 @@ int main( int argc, char *argv[] )
   // msr setup
   struct msr_batch_array read_batch,write_batch, zero_batch;
   struct msr_batch_op start_op[ NUM_READ_MSRS * num_threads ], stop_op[ NUM_READ_MSRS * num_threads ], write_op[ NUM_WRITE_MSRS * num_threads ], zero_op[ NUM_ZERO_MSRS * num_threads ];
-  struct msr_deltas deltas[ num_threads ];
+  struct msr_deltas deltas[ num_threads ], avg;
   int fd = open_msr_fd();
   write_batch.numops = NUM_WRITE_MSRS * num_threads;
   write_batch.ops = write_op;
@@ -78,7 +80,25 @@ int main( int argc, char *argv[] )
 		thread_info_array[t].start = step * t;
 		thread_info_array[t].end = ( t != num_threads - 1) ? ( step * ( t + 1 ) ) : N ;	
 //		printf( "Thread t=%ld	start=%d 	end=%d", t, thread_info_array[t].start, thread_info_array[t].end );
-		rc = pthread_create( &threads[t], &attr, naiveMultiply_parallel_intrinsics_better, (void *)&thread_info_array[t] );
+    switch ( pre_read ) {
+		  case 6: rc = pthread_create( &threads[t], &attr, naiveMultiply_parallel_intrinsics_6, (void *)&thread_info_array[t] ); break;
+		  case 8: rc = pthread_create( &threads[t], &attr, naiveMultiply_parallel_intrinsics_8, (void *)&thread_info_array[t] ); break;
+		  case 10: rc = pthread_create( &threads[t], &attr, naiveMultiply_parallel_intrinsics_10, (void *)&thread_info_array[t] ); break;
+		  case 12: rc = pthread_create( &threads[t], &attr, naiveMultiply_parallel_intrinsics_12, (void *)&thread_info_array[t] ); break;
+		  case 14: rc = pthread_create( &threads[t], &attr, naiveMultiply_parallel_intrinsics_14, (void *)&thread_info_array[t] ); break;
+		  case 16: rc = pthread_create( &threads[t], &attr, naiveMultiply_parallel_intrinsics_16, (void *)&thread_info_array[t] ); break;
+		  case 18: rc = pthread_create( &threads[t], &attr, naiveMultiply_parallel_intrinsics_18, (void *)&thread_info_array[t] ); break;
+		  case 20: rc = pthread_create( &threads[t], &attr, naiveMultiply_parallel_intrinsics_20, (void *)&thread_info_array[t] ); break;
+		  case 22: rc = pthread_create( &threads[t], &attr, naiveMultiply_parallel_intrinsics_22, (void *)&thread_info_array[t] ); break;
+		  case 32: rc = pthread_create( &threads[t], &attr, naiveMultiply_parallel_intrinsics_32, (void *)&thread_info_array[t] ); break;
+		  case 40: rc = pthread_create( &threads[t], &attr, naiveMultiply_parallel_intrinsics_40, (void *)&thread_info_array[t] ); break;
+		  case 64: rc = pthread_create( &threads[t], &attr, naiveMultiply_parallel_intrinsics_64, (void *)&thread_info_array[t] ); break;
+		  case 80: rc = pthread_create( &threads[t], &attr, naiveMultiply_parallel_intrinsics_80, (void *)&thread_info_array[t] ); break;
+		  case 128: rc = pthread_create( &threads[t], &attr, naiveMultiply_parallel_intrinsics_128, (void *)&thread_info_array[t] ); break;
+		  case 256: rc = pthread_create( &threads[t], &attr, naiveMultiply_parallel_intrinsics_256, (void *)&thread_info_array[t] ); break;
+		  case 512: rc = pthread_create( &threads[t], &attr, naiveMultiply_parallel_intrinsics_512, (void *)&thread_info_array[t] ); break;
+      default: rc = pthread_create( &threads[t], &attr, naiveMultiply_parallel_intrinsics_6, (void *)&thread_info_array[t] ); break;
+    }
 		if (rc) {
 			printf( "ERROR; return code from pthread_craete() is %d\n", rc );
 			exit( -1 );
@@ -99,8 +119,10 @@ int main( int argc, char *argv[] )
   read_msrs( fd, num_threads, &read_batch );
 
   get_msrdata( num_threads, start_op, stop_op, deltas );
-  print_msrdelta( num_threads, deltas );
+  //print_msrdelta( num_threads, deltas );
 
+  msrdelta_avg( num_threads, deltas, &avg );
+  print_msrdelta( 1, &avg );
 	pthread_attr_destroy( &attr );
 
 	correct = checkAnswer( N, c, answer, debug );
