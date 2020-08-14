@@ -124,5 +124,5 @@ matrices, which dramatically lowered the execution time.
 
 With time natural log
 
-![Image of strassen log] (https://github.com/ValenYamamoto/matrix-multiply-optimization/blob/master/graphs/strassen_log-graph.png)
+![Image of strassen log](https://github.com/ValenYamamoto/matrix-multiply-optimization/blob/master/graphs/strassen_log-graph.png)
 
