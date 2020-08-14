@@ -94,3 +94,35 @@ file to generate multiply functions.
 
 ![Image of Intrinsics Graph](https://github.com/ValenYamamoto/matrix-multiply-optimization/blob/master/graphs/preread_32-graph.png)
 
+Focusing on the beginning of the graph, we can see the the most consistently faster 
+amount of entries saved is 8, which seems significantly smaller than the size of 
+cache, which merits some more investigation.
+
+![Image of Focused Intrinsics Graph](https://github.com/ValenYamamoto/matrix-multiply-optimization/blob/master/graphs/preread_32_time_small-graph.png)
+
+### Strassen Analysis
+Strassen's matrix multiplication algorithm is a recursive matrix multiplication 
+algorithm which trades less multiplications for more addition and subtraction
+operations.
+
+Initially, I had the base case at N=1. Compared to the naive algorithm, the 
+strassen lagged behind the naive until the matrices got bigger than 
+N=4096 at which point the unoptimized single threaded strassen was 
+faster than the single threaded naive.
+
+![Image of initial comparison](https://github.com/ValenYamamoto/matrix-multiply-optimization/blob/master/graphs/comparison-graph.png)
+
+With both axes taken to log base 2
+
+![Image of initial comparison log](https://github.com/ValenYamamoto/matrix-multiply-optimization/blob/master/graphs/log-comparison-graph.png)
+
+To optimize, I took the base case out to N=2 and used Intel Intrinsics
+to the base multiplication and used Intrinsics to make the intermediate
+matrices, which dramatically lowered the execution time.
+
+![Image of strassen optimization](https://github.com/ValenYamamoto/matrix-multiply-optimization/blob/master/graphs/strassen-graph.png)
+
+With time natural log
+
+![Image of strassen log] (https://github.com/ValenYamamoto/matrix-multiply-optimization/blob/master/graphs/strassen_log-graph.png)
+
