@@ -71,20 +71,26 @@ where N is the size of the matrix NxN.
 ### Naive Analysis
 On the initial unoptimized matrix multiplication, as the matrix size increases,
 the instructions per cycle decreases dramaticaly
+
 ![Image of Instructions Graph](https://github.com/ValenYamamoto/matrix-multiply-optimization/blob/master/graphs/threaded_naive_8_instructions-graph.png)
+
 At the same time, as the matrix size increase, the cache misses per instruction 
 increases.
+
 ![Image of Cache Misses Graph](https://github.com/ValenYamamoto/matrix-multiply-optimization/blob/master/graphs/threaded_naive_8_misses-graph.png)
+
 Therefore, it seems like as the matrix size increases, the function becomes 
 increasingly more memory bound
 
 To solve this, read and saved 6 values ahead in order to have faster and less reads to RAM,
 instead pulling these values into cache. This dramatically speed up the time.
+
 ![Image of Naive Better Graph](https://github.com/ValenYamamoto/matrix-multiply-optimization/blob/master/graphs/compare_naive_16_times-graph.png)
 
-Additionallly, I did experiemtns with Intel Intrinsics SSE instructions. Because of the size of
+Additionally, I did experiments with Intel Intrinsics SSE instructions. Because of the size of
 the cache, it seemed like more than just 6 values could be saved for fast access. In order
 to get around whether or not the compiler would unroll the loops, used generate_code.py
 file to generate multiply functions.
+
 ![Image of Intrinsics Graph](https://github.com/ValenYamamoto/matrix-multiply-optimization/blob/master/graphs/preread_32-graph.png)
 
