@@ -17,14 +17,14 @@
 
 static __u32 READ_MSRS[] = { 0x309, 0xC1, 0xC2, 0x30A, 0x30B }; // FIXED_CTR0, PMC0, PMC1, APERF, MPERF
 
-static __u32 WRITE_MSRS_ON[] = { 0x38D, 0x38F, 0x186, 0x187 }; // FIXED_CTR_CTRL, PERF_GLOBAL_CTRL, PERFEVTSEL0, PERFEVTSEL1
-static __u64 WRITE_ON_VALUES[] = { 0x222, 0x0000000700000003, 0x0434F2E, 0x043412E };
-static __u64 WRITE_ON_MASKS[] = { 0xbbb, 0x0000000700000003, 0x00000000ffffffff, 0x00000000ffffffff };
+static __u32 WRITE_MSRS_ON[] = { 0x38D, 0x38F, 0x186, 0x187, 0x188 }; // FIXED_CTR_CTRL, PERF_GLOBAL_CTRL, PERFEVTSEL0, PERFEVTSEL1, PERFEVTSEL2
+static __u64 WRITE_ON_VALUES[] = { 0x222, 0x0000000700000003, 0x0434F2E, 0x043412E, 0x04381D0 };
+static __u64 WRITE_ON_MASKS[] = { 0xbbb, 0x0000000700000003, 0x00000000ffffffff, 0x00000000ffffffff, 0x00000000ffffffff };
 
-static __u64 WRITE_MSRS_OFF[] = { 0x38D, 0x38F, 0x186, 0x187 };
-static __u64 WRITE_OFF_MASKS[] = { 0xbbb, 0x0000000700000003, 0x00000000ffffffff, 0x0 };
+static __u64 WRITE_MSRS_OFF[] = { 0x38D, 0x38F, 0x186, 0x187, 0x188 };
+static __u64 WRITE_OFF_MASKS[] = { 0xbbb, 0x0000000700000003, 0x00000000ffffffff, 0x0, 0x0 };
 
-static __u32 ZERO_MSRS[] = { 0x309, 0xC1, 0xC2, 0xC3, 0x30A, 0x30B }; // FIXED_CTR0, PMC0, PMC1, FIXED_CTR1, FIXED_CTR2
+static __u32 ZERO_MSRS[] = { 0x309, 0xC1, 0xC2, 0xC3, 0x30A, 0x30B, 0xC3 }; // FIXED_CTR0, PMC0, PMC1, FIXED_CTR1, FIXED_CTR2
 
 // READING FLOPS AND MEM TRAFFIC
 static __u32 WRITE_FLOP_MEM_MSRS[] = { 0x38D, 0x38F, 0x186, 0x187, 0x188 }; // FIXED_CTR_CTRL, PERF_GLOBAL_CTRL, PERFEVTSEL0, PERFEVTSEL1
@@ -45,10 +45,12 @@ void get_msrdata( int num_cpus, struct msr_batch_op begin[], struct msr_batch_op
     delta[i].cache_miss = (uint64_t)end[ NUM_READ_MSRS * i + 2].msrdata - (uint64_t)begin[ NUM_READ_MSRS * i + 2].msrdata;
     delta[i].aperf = (uint64_t)end[ NUM_READ_MSRS * i + 3 ].msrdata - (uint64_t)begin[ NUM_READ_MSRS * i + 3 ].msrdata;
     delta[i].mperf = (uint64_t)end[ NUM_READ_MSRS * i + 4].msrdata - (uint64_t)begin[ NUM_READ_MSRS * i + 4 ].msrdata;
+    delta[i].mem_loads = (uint64_t)end[ NUM_READ_MSRS * i + 5 ].msrdata - (uint64_t)begin[ NUM_READ_MSRS * i + 5 ].msrdata;
     delta[i].instruct_per_cycle = delta[i].retired_instruct / (double) delta[i].aperf;
     delta[i].cache_miss_per_instruct = delta[i].cache_miss / (double) delta[i].retired_instruct;
     delta[i].freq = PRINTED_FREQ * delta[i].aperf / (double) delta[i].mperf;
     delta[i].time = delta[i].aperf / delta[i].freq / 1E9;
+    delta[i].mem_loads_per_cycle = delta[i].mem_loads / (double) delta[i].aperf;
   }
 }
 
@@ -67,10 +69,12 @@ void print_msrdelta( int num_cpus, struct msr_deltas delta[] ) {
     printf( "CPU: %2d   %25s: %" PRIu64 "\n", i, "Retired Instructions", delta[i].retired_instruct );
     printf( "          %25s: %" PRIu64 "\n", "Cache access", delta[i].cache_access );
     printf( "          %25s: %" PRIu64 "\n", "Cache Misses", delta[i].cache_miss );
+    printf( "          %25s: %" PRIu64 "\n", "Mem Loads", delta[i].mem_loads );
     printf( "          %25s: %" PRIu64 "\n", "APERF", delta[i].aperf );
     printf( "          %25s: %" PRIu64 "\n", "MPERF", delta[i].mperf );
     printf( "          %25s: %.6lf\n", "Instruction / cycle", delta[i].instruct_per_cycle );
     printf( "          %25s: %.6lf\n", "Cache miss / instruction", delta[i].cache_miss_per_instruct );
+    printf( "          %25s: %.6lf\n", "Mem Loads / cycle", delta[i].mem_loads_per_cycle );
     printf( "          %25s: %.6lf\n", "Freq", delta[i].freq );
     printf( "          %25s: %.6lf\n", "Time", delta[i].time );
     printf( "\n" );
@@ -79,7 +83,7 @@ void print_msrdelta( int num_cpus, struct msr_deltas delta[] ) {
 
 void msrdelta_avg( int num_cpus, struct msr_deltas delta[], struct msr_deltas *avg ) {
   int i;
-  double sums[9];
+  double sums[11];
   for( i = 0; i < num_cpus; i++ ) {
     sums[0] += (double) delta[i].retired_instruct;
     sums[1] += (double) delta[i].cache_access;
@@ -90,8 +94,10 @@ void msrdelta_avg( int num_cpus, struct msr_deltas delta[], struct msr_deltas *a
     sums[6] += (double) delta[i].cache_miss_per_instruct;
     sums[7] += (double) delta[i].freq;
     sums[8] += (double) delta[i].time;
+    sums[9] += (double) delta[i].mem_loads;
+    sums[10] += (double) delta[i].mem_loads_per_cycle;
   }
-  for( i = 0; i < 9; i++ ) {
+  for( i = 0; i < 11; i++ ) {
     sums[i] /= (double) num_cpus;
   }
   avg->retired_instruct = (uint64_t)sums[0];
@@ -103,6 +109,13 @@ void msrdelta_avg( int num_cpus, struct msr_deltas delta[], struct msr_deltas *a
   avg->cache_miss_per_instruct = sums[6];
   avg->freq = sums[7];
   avg->time = sums[8];
+  avg->mem_loads = sums[9];
+  avg->mem_loads_per_cycle = sums[10];
+}
+
+void print_avg( struct msr_deltas *avg ) {
+  printf( "%" PRIu64 " %" PRIu64 " %" PRIu64 " %" PRIu64 " %" PRIu64 " %" PRIu64" %lf %lf %lf %lf %lf\n", avg->retired_instruct, avg->cache_access,
+      avg->cache_miss, avg->aperf, avg->mperf, avg->mem_loads, avg->instruct_per_cycle, avg->cache_miss_per_instruct, avg->mem_loads_per_cycle, avg->freq, avg->time );
 }
 
 void print_flop_mem_msrdelta( int num_cpus, struct msr_flop_mem_deltas delta[] ) {

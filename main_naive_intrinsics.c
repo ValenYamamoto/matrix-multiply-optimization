@@ -122,7 +122,8 @@ int main( int argc, char *argv[] )
   //print_msrdelta( num_threads, deltas );
 
   msrdelta_avg( num_threads, deltas, &avg );
-  print_msrdelta( 1, &avg );
+  //print_msrdelta( 1, &avg );
+  print_avg( &avg );
 	pthread_attr_destroy( &attr );
 
 	correct = checkAnswer( N, c, answer, debug );

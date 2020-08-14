@@ -36,7 +36,7 @@ int main( int argc, char *argv[] )
   // msr setup
   struct msr_batch_array read_batch,write_batch, zero_batch;
   struct msr_batch_op start_op[ NUM_READ_MSRS * num_threads ], stop_op[ NUM_READ_MSRS * num_threads ], write_op[ NUM_WRITE_MSRS * num_threads ], zero_op[ NUM_ZERO_MSRS * num_threads ];
-  struct msr_deltas deltas[ num_threads ];
+  struct msr_deltas deltas[ num_threads ], avg;
   int fd = open_msr_fd();
   write_batch.numops = NUM_WRITE_MSRS * num_threads;
   write_batch.ops = write_op;
@@ -99,7 +99,10 @@ int main( int argc, char *argv[] )
   read_msrs( fd, num_threads, &read_batch );
 
   get_msrdata( num_threads, start_op, stop_op, deltas );
-  print_msrdelta( num_threads, deltas );
+  //print_msrdelta( num_threads, deltas );
+
+  msrdelta_avg( num_threads, deltas, &avg );
+  print_avg( &avg );
 
 	pthread_attr_destroy( &attr );
 

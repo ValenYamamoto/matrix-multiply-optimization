@@ -23,8 +23,10 @@ struct msr_deltas {
   uint64_t cache_miss;
   uint64_t aperf;
   uint64_t mperf;
+  uint64_t mem_loads;
   double instruct_per_cycle;
   double cache_miss_per_instruct;
+  double mem_loads_per_cycle;
   double freq;
   double time;
 };
@@ -62,3 +64,5 @@ void print_flop_mem_msrdelta( int num_cpus, struct msr_flop_mem_deltas delta[] )
 void print_debug( int num_cpus, struct msr_batch_op start[], struct msr_batch_op stop[] ); 
 
 void msrdelta_avg( int num_cpus, struct msr_deltas delta[], struct msr_deltas *avg ); 
+
+void print_avg( struct msr_deltas *avg ); 

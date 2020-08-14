@@ -6,8 +6,10 @@ def parse_file( f: "file" ) -> (list, list):
     times = []
     for line in f:
         N, time = tuple( float(x) for x in line.rstrip( "\n" ).split(" ") )
-        sizes.append( N );
-        times.append( time );
+        if N < 6000:
+          print( N )
+          sizes.append( N );
+          times.append( time );
     return sizes, times
 
 def plot_matrix( x, y, label ) -> None:
