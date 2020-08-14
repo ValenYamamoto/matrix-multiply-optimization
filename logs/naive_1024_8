@@ -1,0 +1,81 @@
+numactl -C 0-$(( 8 - 1 )) ./naive 1024 test_cases/x1024 test_cases/y1024 test_cases/a1024 8 0;
+CPU:  0        Retired Instructions: 5887370508
+                       Cache access: 2084442
+                       Cache Misses: 72851
+                              APERF: 2509542684
+                              MPERF: 2177726018
+                Instruction / cycle: 2.345993
+           Cache miss / instruction: 0.000012
+                               Freq: 2.996158
+                               Time: 0.837587
+
+CPU:  1        Retired Instructions: 5886777456
+                       Cache access: 2027565
+                       Cache Misses: 31848
+                              APERF: 2508924358
+                              MPERF: 2174180736
+                Instruction / cycle: 2.346335
+           Cache miss / instruction: 0.000005
+                               Freq: 3.000304
+                               Time: 0.836223
+
+CPU:  2        Retired Instructions: 5887069423
+                       Cache access: 2121339
+                       Cache Misses: 37906
+                              APERF: 2511289836
+                              MPERF: 2180383296
+                Instruction / cycle: 2.344241
+           Cache miss / instruction: 0.000006
+                               Freq: 2.994590
+                               Time: 0.838609
+
+CPU:  3        Retired Instructions: 5887080159
+                       Cache access: 2109299
+                       Cache Misses: 54850
+                              APERF: 2510957878
+                              MPERF: 2180285822
+                Instruction / cycle: 2.344556
+           Cache miss / instruction: 0.000009
+                               Freq: 2.994328
+                               Time: 0.838571
+
+CPU:  4        Retired Instructions: 5887069291
+                       Cache access: 2107983
+                       Cache Misses: 52743
+                              APERF: 2511133481
+                              MPERF: 2180434542
+                Instruction / cycle: 2.344387
+           Cache miss / instruction: 0.000009
+                               Freq: 2.994333
+                               Time: 0.838629
+
+CPU:  5        Retired Instructions: 5887069206
+                       Cache access: 2046393
+                       Cache Misses: 51453
+                              APERF: 2509959529
+                              MPERF: 2179446386
+                Instruction / cycle: 2.345484
+           Cache miss / instruction: 0.000009
+                               Freq: 2.994290
+                               Time: 0.838249
+
+CPU:  6        Retired Instructions: 5887073425
+                       Cache access: 2005963
+                       Cache Misses: 21189
+                              APERF: 2510056201
+                              MPERF: 2179524568
+                Instruction / cycle: 2.345395
+           Cache miss / instruction: 0.000004
+                               Freq: 2.994298
+                               Time: 0.838279
+
+CPU:  7        Retired Instructions: 5887130539
+                       Cache access: 1968951
+                       Cache Misses: 23799
+                              APERF: 2508736838
+                              MPERF: 2177866938
+                Instruction / cycle: 2.346651
+           Cache miss / instruction: 0.000004
+                               Freq: 2.995002
+                               Time: 0.837641
+

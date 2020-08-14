@@ -1,0 +1,161 @@
+./naive 4096 test_cases/x4096 test_cases/y4096 test_cases/a4096 16 0;
+CPU:  0        Retired Instructions: 189102291337
+                       Cache access: 138081138
+                       Cache Misses: 11120297
+                              APERF: 82443952373
+                              MPERF: 71403181824
+                Instruction / cycle: 2.293707
+           Cache miss / instruction: 0.000059
+                               Freq: 3.002027
+                               Time: 27.462762
+
+CPU:  1        Retired Instructions: 188291477849
+                       Cache access: 132423046
+                       Cache Misses: 4137493
+                              APERF: 81833885751
+                              MPERF: 70922724990
+                Instruction / cycle: 2.300899
+           Cache miss / instruction: 0.000022
+                               Freq: 2.999999
+                               Time: 27.277971
+
+CPU:  2        Retired Instructions: 188293677651
+                       Cache access: 132464647
+                       Cache Misses: 3692181
+                              APERF: 81840645789
+                              MPERF: 70928986206
+                Instruction / cycle: 2.300735
+           Cache miss / instruction: 0.000020
+                               Freq: 2.999982
+                               Time: 27.280379
+
+CPU:  3        Retired Instructions: 188877420694
+                       Cache access: 135696544
+                       Cache Misses: 4557030
+                              APERF: 82138735455
+                              MPERF: 71165988660
+                Instruction / cycle: 2.299493
+           Cache miss / instruction: 0.000024
+                               Freq: 3.000882
+                               Time: 27.371534
+
+CPU:  4        Retired Instructions: 188293408954
+                       Cache access: 132889871
+                       Cache Misses: 3069747
+                              APERF: 81842995697
+                              MPERF: 70931227978
+                Instruction / cycle: 2.300666
+           Cache miss / instruction: 0.000016
+                               Freq: 2.999973
+                               Time: 27.281242
+
+CPU:  5        Retired Instructions: 188457242573
+                       Cache access: 134267401
+                       Cache Misses: 9668328
+                              APERF: 81981000836
+                              MPERF: 71043647688
+                Instruction / cycle: 2.298792
+           Cache miss / instruction: 0.000051
+                               Freq: 3.000277
+                               Time: 27.324480
+
+CPU:  6        Retired Instructions: 188293538273
+                       Cache access: 134239763
+                       Cache Misses: 5180852
+                              APERF: 81935555250
+                              MPERF: 71005112204
+                Instruction / cycle: 2.298069
+           Cache miss / instruction: 0.000028
+                               Freq: 3.000241
+                               Time: 27.309659
+
+CPU:  7        Retired Instructions: 188242665918
+                       Cache access: 135015411
+                       Cache Misses: 6680704
+                              APERF: 81838981944
+                              MPERF: 70927744420
+                Instruction / cycle: 2.300159
+           Cache miss / instruction: 0.000035
+                               Freq: 2.999973
+                               Time: 27.279902
+
+CPU:  8        Retired Instructions: 188073097179
+                       Cache access: 141428974
+                       Cache Misses: 11723897
+                              APERF: 82140563649
+                              MPERF: 71382772240
+                Instruction / cycle: 2.289649
+           Cache miss / instruction: 0.000062
+                               Freq: 2.991835
+                               Time: 27.454912
+
+CPU:  9        Retired Instructions: 188293254470
+                       Cache access: 140011056
+                       Cache Misses: 10532711
+                              APERF: 82245242808
+                              MPERF: 71470184916
+                Instruction / cycle: 2.289412
+           Cache miss / instruction: 0.000056
+                               Freq: 2.991984
+                               Time: 27.488533
+
+CPU: 10        Retired Instructions: 188293537913
+                       Cache access: 137478369
+                       Cache Misses: 4534045
+                              APERF: 82169867026
+                              MPERF: 71408695878
+                Instruction / cycle: 2.291516
+           Cache miss / instruction: 0.000024
+                               Freq: 2.991816
+                               Time: 27.464883
+
+CPU: 11        Retired Instructions: 188272480613
+                       Cache access: 138300015
+                       Cache Misses: 4624682
+                              APERF: 82160035262
+                              MPERF: 71400177030
+                Instruction / cycle: 2.291534
+           Cache miss / instruction: 0.000025
+                               Freq: 2.991815
+                               Time: 27.461607
+
+CPU: 12        Retired Instructions: 187718517955
+                       Cache access: 155221192
+                       Cache Misses: 14955414
+                              APERF: 82216448340
+                              MPERF: 71445677836
+                Instruction / cycle: 2.283223
+           Cache miss / instruction: 0.000080
+                               Freq: 2.991962
+                               Time: 27.479107
+
+CPU: 13        Retired Instructions: 188293671908
+                       Cache access: 136792405
+                       Cache Misses: 4375682
+                              APERF: 82168386380
+                              MPERF: 71407386258
+                Instruction / cycle: 2.291559
+           Cache miss / instruction: 0.000023
+                               Freq: 2.991817
+                               Time: 27.464379
+
+CPU: 14        Retired Instructions: 188166927487
+                       Cache access: 142897834
+                       Cache Misses: 9076342
+                              APERF: 82166877525
+                              MPERF: 71405752288
+                Instruction / cycle: 2.290058
+           Cache miss / instruction: 0.000048
+                               Freq: 2.991830
+                               Time: 27.463751
+
+CPU: 15        Retired Instructions: 187733502785
+                       Cache access: 151628597
+                       Cache Misses: 12705557
+                              APERF: 82143505390
+                              MPERF: 71385714998
+                Instruction / cycle: 2.285433
+           Cache miss / instruction: 0.000068
+                               Freq: 2.991819
+                               Time: 27.456044
+

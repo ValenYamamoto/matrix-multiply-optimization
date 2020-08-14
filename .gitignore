@@ -6,4 +6,3 @@ matrix_mult
 naive
 strassen
 test_cases/*
-logs/*

@@ -1,0 +1,72 @@
+numactl -C 0-6 ./strassen 1024 test_cases/x1024 test_cases/y1024 test_cases/a1024 0; 
+CPU:  0        Retired Instructions: 1706177
+                       Cache access: 1355800
+                       Cache Misses: 167849
+                              APERF: 4205188
+                              MPERF: 3348982
+                Instruction / cycle: 0.405731
+           Cache miss / instruction: 0.098377
+                               Freq: 3.264720
+                               Time: 0.001288
+
+CPU:  1        Retired Instructions: 1123659
+                       Cache access: 910435
+                       Cache Misses: 112216
+                              APERF: 2565014
+                              MPERF: 2038868
+                Instruction / cycle: 0.438071
+           Cache miss / instruction: 0.099867
+                               Freq: 3.270951
+                               Time: 0.000784
+
+CPU:  2        Retired Instructions: 365679502546
+                       Cache access: 24407966
+                       Cache Misses: 4662615
+                              APERF: 206631285583
+                              MPERF: 162809624614
+                Instruction / cycle: 1.769720
+           Cache miss / instruction: 0.000013
+                               Freq: 3.299813
+                               Time: 62.619086
+
+CPU:  3        Retired Instructions: 2082671
+                       Cache access: 1209518
+                       Cache Misses: 150682
+                              APERF: 5621521
+                              MPERF: 4484532
+                Instruction / cycle: 0.370482
+           Cache miss / instruction: 0.072350
+                               Freq: 3.259193
+                               Time: 0.001725
+
+CPU:  4        Retired Instructions: 2401759
+                       Cache access: 1086443
+                       Cache Misses: 127555
+                              APERF: 5012523
+                              MPERF: 3990324
+                Instruction / cycle: 0.479152
+           Cache miss / instruction: 0.053109
+                               Freq: 3.266041
+                               Time: 0.001535
+
+CPU:  5        Retired Instructions: 1273604
+                       Cache access: 968043
+                       Cache Misses: 114752
+                              APERF: 3138981
+                              MPERF: 2503878
+                Instruction / cycle: 0.405738
+           Cache miss / instruction: 0.090100
+                               Freq: 3.259484
+                               Time: 0.000963
+
+CPU:  6        Retired Instructions: 1639185
+                       Cache access: 1005900
+                       Cache Misses: 123841
+                              APERF: 3905987
+                              MPERF: 3127618
+                Instruction / cycle: 0.419660
+           Cache miss / instruction: 0.075550
+                               Freq: 3.247061
+                               Time: 0.001203
+
+1 
