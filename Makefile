@@ -68,6 +68,8 @@ runnaivefloat:
 
 clean:
 	rm -f *.o
+	rm -f naive
+	rm -f naive_intrinsics strassen naive_float
 
 cleanlogs:
 	rm -f naive_output_* strassen_output_*
